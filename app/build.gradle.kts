@@ -57,4 +57,16 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // Google API Client + Sheets
+    implementation("com.google.api-client:google-api-client-android:2.6.0")
+    implementation("com.google.api-client:google-api-client-gson:2.6.0")
+    implementation("com.google.apis:google-api-services-sheets:v4-rev20240515-2.0.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
 }
