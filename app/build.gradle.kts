@@ -58,6 +58,12 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // Compose integration for ViewModel:
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Make sure you also have:
+    implementation("androidx.activity:activity-compose:1.9.3")
+
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
