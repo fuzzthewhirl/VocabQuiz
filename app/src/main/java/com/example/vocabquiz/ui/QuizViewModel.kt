@@ -20,8 +20,7 @@ data class QuizState(
 )
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
-    // TODO: replace with your real Spreadsheet ID
-    private val spreadsheetId = "YOUR_SPREADSHEET_ID"
+    private val spreadsheetId = "1HI8QRSYkGNsXvyO2Grx3o1wFe6Q9uscyfAO31Xe50QQ"
     private val repo = VocabRepository(app, spreadsheetId)
 
     private val _state = MutableStateFlow(QuizState())

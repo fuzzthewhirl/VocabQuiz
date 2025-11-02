@@ -39,6 +39,20 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
+
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/ASL2.0"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -68,10 +82,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.4.0")
 
     // Google API Client + Sheets
-    implementation("com.google.api-client:google-api-client-android:2.8.1")
-    implementation("com.google.api-client:google-api-client-gson:2.8.1")
-// https://mvnrepository.com/artifact/com.google.apis/google-api-services-sheets
+    implementation("com.google.api-client:google-api-client-android:1.31.5")
+    implementation("com.google.api-client:google-api-client-gson:1.31.5")
     implementation("com.google.apis:google-api-services-sheets:v4-rev612-1.25.0")
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
