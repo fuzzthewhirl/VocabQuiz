@@ -3,6 +3,8 @@
     <!-- if you kept this, it's OK; AGP prefers the Gradle namespace -->
     <!-- package="com.example.vocabquiz" -->
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="VocabQuiz"
         android:allowBackup="true"

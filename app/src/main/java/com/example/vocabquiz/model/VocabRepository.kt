@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 class VocabRepository(
     private val context: Context,
     private val spreadsheetId: String,
-    private val rangeA1: String = "Sheet1!A:E" // adjust to your tab & columns
+    private val rangeA1: String = "Saved translations!A:E" // adjust to your tab & columns
 ) {
     suspend fun fetch(): List<Vocab> = withContext(Dispatchers.IO) {
         val service = SheetsServiceFactory.create(context) ?: return@withContext emptyList()
