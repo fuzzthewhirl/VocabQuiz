@@ -98,7 +98,7 @@ private fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
 
         // Reveal bubble
         Surface(
-            onClick = { on.toggleReveal() },
+            onClick = { if(st.revealed) on.nextCard() else on.toggleReveal() },
             shape = MaterialTheme.shapes.large,
             tonalElevation = 2.dp,
             modifier = Modifier
