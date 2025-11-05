@@ -28,7 +28,10 @@ data class QuizState(
     val revealed: Boolean = false
 ) {
     enum class Status { Loading, Ready, Error }
+
 }
+
+
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
 

@@ -41,8 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vocabquiz.model.Direction
 import com.example.vocabquiz.model.Lang
+import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
 import com.example.vocabquiz.ui.QuizViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -74,8 +74,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
-    val langs = listOf(Lang.FI, Lang.ES, Lang.EN)
     val outerScroll = rememberScrollState()
+
+    // All possible ordered pairs
+    val pairs = listOf(
+        LanguagePair("fi", "es"),
+        LanguagePair("es", "fi"),
+        LanguagePair("en", "es"),
+        LanguagePair("es", "en"),
+        LanguagePair("fi", "en"),
+        LanguagePair("en", "fi"),
+    )
 
     Scaffold(
         bottomBar = {
@@ -104,33 +113,17 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Source / Target language selectors
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                LangDropdown(
-                    label = "Source",
-                    items = langs,
-                    selected = st.sourceLang ?: langs.first(),
-                    onSelect = { l -> on.setLangs(l, st.targetLang ?: l) }
-                )
-                LangDropdown(
-                    label = "Target",
-                    items = langs,
-                    selected = st.targetLang ?: langs.first(),
-                    onSelect = { l -> on.setLangs(st.sourceLang ?: l, l) }
-                )
-            }
-
-            // Direction toggle
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { on.changeDirection(Direction.SRC_TO_TGT) },
-                    enabled = st.direction != Direction.SRC_TO_TGT
-                ) { Text("Source → Target") }
-                OutlinedButton(
-                    onClick = { on.changeDirection(Direction.TGT_TO_SRC) },
-                    enabled = st.direction != Direction.TGT_TO_SRC
-                ) { Text("Target → Source") }
-            }
+            // 🔽 Single dropdown for pair selection
+            PairDropdown(
+                label = "Language pair",
+                items = pairs,
+                selected = st.currentPair(),
+                onSelect = { pair ->
+                    val src = Lang.valueOf(pair.src.uppercase())
+                    val tgt = Lang.valueOf(pair.tgt.uppercase())
+                    on.setLangs(src, tgt)
+                }
+            )
 
             // Progress
             Text("${st.index + 1} / ${st.pool.size}", style = MaterialTheme.typography.labelLarge)
@@ -145,7 +138,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
                     .padding(top = 8.dp)
             )
 
-            // Answer bubble: capped height + internal scroll; tap to reveal / advance
+            // Answer bubble (tap to reveal / advance)
             val innerScroll = rememberScrollState()
             Surface(
                 onClick = { if (st.revealed) on.nextCard() else on.toggleReveal() },
@@ -153,7 +146,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
                 tonalElevation = 2.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 80.dp, max = 220.dp)  // <- keep buttons visible
+                    .heightIn(min = 80.dp, max = 220.dp)
                     .padding(horizontal = 8.dp)
             ) {
                 Box(
@@ -182,7 +175,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
                 }
             }
 
-            // Optional: chunk paging
+            // Optional chunk paging
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
                 OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
@@ -190,6 +183,46 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
         }
     }
 }
+
+fun QuizState.currentPair(): LanguagePair? {
+    val src = sourceLang ?: return null
+    val tgt = targetLang ?: return null
+    return LanguagePair(src.code, tgt.code)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PairDropdown(
+    label: String,
+    items: List<LanguagePair>,
+    selected: LanguagePair?,
+    onSelect: (LanguagePair) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val currentLabel = selected?.toString() ?: "Select"
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        TextField(
+            value = "$label: $currentLabel",
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.menuAnchor()
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { pair ->
+                DropdownMenuItem(
+                    text = { Text(pair.toString()) },
+                    onClick = {
+                        expanded = false
+                        onSelect(pair)
+                    }
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
