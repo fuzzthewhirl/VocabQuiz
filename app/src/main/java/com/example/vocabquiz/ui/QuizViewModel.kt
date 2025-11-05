@@ -13,6 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.random.Random
+import kotlin.math.max
+import kotlin.math.min
 
 data class QuizState(
     val status: Status = Status.Loading,
@@ -21,7 +25,7 @@ data class QuizState(
     val direction: Direction = Direction.SRC_TO_TGT,
 
     val pageOffset: Int = 0,
-    val pageSize: Int = 10,
+    val pageSize: Int = 10, // <= 10-word chunks
 
     val pool: List<Vocab> = emptyList(),
     val index: Int = 0,
@@ -30,63 +34,82 @@ data class QuizState(
     val revealed: Boolean = false
 ) {
     enum class Status { Loading, Ready, Error }
-
 }
-
-
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
     private val settings = SettingsStore(app)
 
-    // TODO: put your real Spreadsheet ID here
+    // TODO: put your real Spreadsheet ID here (you already did)
     private val spreadsheetId = "1HI8QRSYkGNsXvyO2Grx3o1wFe6Q9uscyfAO31Xe50QQ"
     private val repo = VocabRepository(app, spreadsheetId)
 
     private val _state = MutableStateFlow(QuizState())
     val state = _state.asStateFlow()
 
+    // single-flight gate to avoid overlapping loads
+    private var loading = false
+
     init {
         viewModelScope.launch {
-            // 1) Load sheet data
+            // 1) Load all data (IO thread is handled inside repo)
             repo.loadAll()
 
-            // 2) Read saved settings (if any)
-            val snap = settings.snapshot.first()
-            val savedSrc = snap.src
-            val savedTgt = snap.tgt
-            val savedOffset = snap.offset.coerceAtLeast(0)
-            val savedIndex  = snap.index.coerceAtLeast(0)
+            // 2) Read saved settings with a timeout so we never block startup
+            val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
 
-            // 3) Decide starting pair
-            val startSrc = when (savedSrc) { "fi","es","en" -> savedSrc else -> "fi" }
-            val startTgt = when (savedTgt) { "fi","es","en" -> savedTgt else -> "es" }
+            // 3) Decide starting pair (saved or defaults)
+            val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
+            val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
+            val pair = LanguagePair(startSrc, startTgt)
 
-            // 4) Load that chunk and jump to saved index
-            val pair = com.example.vocabquiz.model.LanguagePair(startSrc, startTgt)
-            loadChunkFor(pair, _state.value.direction, savedOffset)
-
+            // Reflect chosen pair in state (Lang enums)
             _state.value = _state.value.copy(
-                // reflect chosen pair in state (Lang enums)
-                sourceLang = com.example.vocabquiz.model.Lang.valueOf(startSrc.uppercase()),
-                targetLang = com.example.vocabquiz.model.Lang.valueOf(startTgt.uppercase())
+                sourceLang = Lang.valueOf(startSrc.uppercase()),
+                targetLang = Lang.valueOf(startTgt.uppercase())
             )
 
-            // Set the saved card if available
-            setCard(savedIndex, reveal = false)
+            // 4) Choose offset: resume if valid, else random chunk start
+            val total = repo.pairSize(pair)
+            val size  = _state.value.pageSize
+            val hasResume = snap.offset in 0 until total
+            val maxStart = max(0, total - size)
+            val startOffset = if (hasResume) {
+                // align to page boundary
+                (snap.offset / size) * size
+            } else {
+                if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
+            }
+
+            // Persist where we start (nice to have)
+            settings.savePair(startSrc, startTgt)
+            settings.saveOffset(startOffset)
+            if (!hasResume) settings.saveIndex(0)
+
+            // 5) Load that page and jump to saved (clamped) index
+            val desiredIndex = if (hasResume) snap.index else 0
+            loadChunkFor(pair, _state.value.direction, startOffset, desiredIndex)
         }
     }
 
     fun setLangs(src: Lang, tgt: Lang) {
         if (src == tgt) return
-        viewModelScope.launch {
-            settings.savePair(src.code, tgt.code)
-            settings.saveOffset(0)
-            settings.saveIndex(0)
-        }
         val pair = LanguagePair(src.code, tgt.code)
-        loadChunkFor(pair, _state.value.direction, 0)
-        _state.value = _state.value.copy(sourceLang = src, targetLang = tgt, revealed = false)
+
+        viewModelScope.launch {
+            // randomize a fresh page whenever pair changes
+            val total = repo.pairSize(pair)
+            val size  = _state.value.pageSize
+            val maxStart = max(0, total - size)
+            val randomOffset = if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
+
+            settings.savePair(src.code, tgt.code)
+            settings.saveOffset(randomOffset)
+            settings.saveIndex(0)
+
+            _state.value = _state.value.copy(sourceLang = src, targetLang = tgt, revealed = false)
+            loadChunkFor(pair, _state.value.direction, randomOffset, desiredIndex = 0)
+        }
     }
 
     fun changeDirection(direction: Direction) {
@@ -97,7 +120,6 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         setCard(s.index, reveal = false) // recompute prompt/answer for same card
     }
 
-    // ui/QuizViewModel.kt
     fun nextPage() {
         val s = _state.value
         val pair = currentPair() ?: return
@@ -106,14 +128,12 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
         val newOffset = s.pageOffset + s.pageSize
         if (newOffset >= total) {
-            // no more data — stay on current page
-            // (optional) Log or trigger a UI hint
             android.util.Log.d("QuizVM", "No next chunk for $pair (total=$total)")
             return
         }
 
         viewModelScope.launch { settings.saveOffset(newOffset); settings.saveIndex(0) }
-        loadChunkFor(pair, s.direction, newOffset)
+        loadChunkFor(pair, s.direction, newOffset, desiredIndex = 0)
     }
 
     fun prevPage() {
@@ -123,7 +143,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         if (newOffset == s.pageOffset) return
 
         viewModelScope.launch { settings.saveOffset(newOffset); settings.saveIndex(0) }
-        loadChunkFor(pair, s.direction, newOffset)
+        loadChunkFor(pair, s.direction, newOffset, desiredIndex = 0)
     }
 
     fun prevCard() {
@@ -131,6 +151,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         if (s.pool.isEmpty()) return
         val prev = (s.index - 1 + s.pool.size).mod(s.pool.size)
         setCard(prev, reveal = false)
+        viewModelScope.launch { settings.saveIndex(prev) }
     }
 
     fun nextCard() {
@@ -152,19 +173,35 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         return LanguagePair(src.code, tgt.code)
     }
 
-    private fun loadChunkFor(pair: LanguagePair, direction: Direction, offset: Int) {
+    // now accepts desiredIndex (will be clamped to chunk size)
+    private fun loadChunkFor(
+        pair: LanguagePair,
+        direction: Direction,
+        offset: Int,
+        desiredIndex: Int = 0
+    ) {
+        if (loading) return
+        loading = true
         viewModelScope.launch {
-            val size = _state.value.pageSize
-            val chunk = repo.getChunk(pair, offset, size)
-            val status = if (chunk.isEmpty()) QuizState.Status.Error else QuizState.Status.Ready
-            _state.value = _state.value.copy(
-                status = status,
-                pageOffset = offset,
-                pool = chunk,
-                index = 0,
-                revealed = false
-            )
-            if (chunk.isNotEmpty()) setCard(0, reveal = false)
+            try {
+                val size = _state.value.pageSize
+                val chunk = repo.getChunk(pair, offset, size)
+                if (chunk.isEmpty()) {
+                    android.util.Log.d("QuizVM", "Empty chunk at offset=$offset for $pair")
+                    return@launch
+                }
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Ready,
+                    pageOffset = offset,
+                    pool = chunk,
+                    index = 0,
+                    revealed = false
+                )
+                val idx = desiredIndex.coerceIn(0, chunk.size - 1)
+                setCard(idx, reveal = false)
+            } finally {
+                loading = false
+            }
         }
     }
 
