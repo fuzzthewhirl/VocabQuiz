@@ -2,8 +2,8 @@ package com.example.vocabquiz.data
 
 import android.content.Context
 import android.util.Log
-import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Lang
+import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,13 +38,13 @@ class VocabRepository(
 
         // A:srcLangName, B:tgtLangName, C:sourceWord, D:targetWord
         fun norm(s: Any?) = s?.toString()?.trim().orEmpty()
-        fun normLangName(s: Any?): String? = Lang.normalize(norm(s))
+        fun normLangName(s: Any?): String? = Lang.Companion.normalize(norm(s))
 
         all = rows.mapNotNull { r ->
             val srcLang = normLangName(r.getOrNull(0))
             val tgtLang = normLangName(r.getOrNull(1))
-            val source  = norm(r.getOrNull(2))
-            val target  = norm(r.getOrNull(3))
+            val source = norm(r.getOrNull(2))
+            val target = norm(r.getOrNull(3))
 
             if (source.isEmpty() || target.isEmpty()) return@mapNotNull null
             if (srcLang == null || tgtLang == null) return@mapNotNull null
@@ -60,8 +60,12 @@ class VocabRepository(
         // Keep only fi/es/en and exclude same-language pairs
         val allowed = setOf("fi", "es", "en")
         val before = all.size
-        all = all.filter { it.srcLang in allowed && it.tgtLang in allowed && it.srcLang != it.tgtLang }
-        Log.d("VocabRepo", "Parsed $before rows, kept ${all.size} after lang filter (tab=$sheetTab)")
+        all =
+            all.filter { it.srcLang in allowed && it.tgtLang in allowed && it.srcLang != it.tgtLang }
+        Log.d(
+            "VocabRepo",
+            "Parsed $before rows, kept ${all.size} after lang filter (tab=$sheetTab)"
+        )
 
         byPair = all.groupBy { LanguagePair(it.srcLang!!, it.tgtLang!!) }
         byPair.forEach { (pair, list) -> Log.d("VocabRepo", "Pair $pair -> ${list.size} rows") }
