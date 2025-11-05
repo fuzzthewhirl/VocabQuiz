@@ -21,7 +21,7 @@ data class QuizState(
     val direction: Direction = Direction.SRC_TO_TGT,
 
     val pageOffset: Int = 0,
-    val pageSize: Int = 100,
+    val pageSize: Int = 10,
 
     val pool: List<Vocab> = emptyList(),
     val index: Int = 0,
