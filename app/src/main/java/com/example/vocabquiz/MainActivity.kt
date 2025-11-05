@@ -4,15 +4,41 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.model.Direction
@@ -46,95 +72,122 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+//@file:OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
+fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
     val langs = listOf(Lang.FI, Lang.ES, Lang.EN)
+    val outerScroll = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Source / Target dropdowns
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            LangDropdown(
-                label = "Source",
-                items = langs,
-                selected = st.sourceLang ?: langs.first(),
-                onSelect = { l -> on.setLangs(l, st.targetLang ?: l) }
-            )
-            LangDropdown(
-                label = "Target",
-                items = langs,
-                selected = st.targetLang ?: langs.first(),
-                onSelect = { l -> on.setLangs(st.sourceLang ?: l, l) }
-            )
-        }
-
-        // Direction toggle
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(
-                onClick = { on.changeDirection(Direction.SRC_TO_TGT) },
-                enabled = st.direction != Direction.SRC_TO_TGT
-            ) { Text("Source → Target") }
-            OutlinedButton(
-                onClick = { on.changeDirection(Direction.TGT_TO_SRC) },
-                enabled = st.direction != Direction.TGT_TO_SRC
-            ) { Text("Target → Source") }
-        }
-
-        // Prompt
-        Text(
-            st.promptText,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp, bottom = 8.dp)
-        )
-
-        // Reveal bubble
-        Surface(
-            onClick = { if(st.revealed) on.nextCard() else on.toggleReveal() },
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 2.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 80.dp)
-                .padding(horizontal = 8.dp)
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                if (st.revealed) {
-                    Text(
-                        st.answerText,
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    Text(
-                        "Tap to reveal",
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(16.dp)
-                    )
+    Scaffold(
+        bottomBar = {
+            BottomAppBar {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = { on.prevCard() }, modifier = Modifier.weight(1f)) { Text("Prev") }
+                    Button(onClick = { on.nextCard() }, modifier = Modifier.weight(1f)) { Text("Next") }
                 }
             }
         }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .systemBarsPadding()
+                .imePadding()
+                .padding(20.dp)
+                .verticalScroll(outerScroll),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Source / Target language selectors
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LangDropdown(
+                    label = "Source",
+                    items = langs,
+                    selected = st.sourceLang ?: langs.first(),
+                    onSelect = { l -> on.setLangs(l, st.targetLang ?: l) }
+                )
+                LangDropdown(
+                    label = "Target",
+                    items = langs,
+                    selected = st.targetLang ?: langs.first(),
+                    onSelect = { l -> on.setLangs(st.sourceLang ?: l, l) }
+                )
+            }
 
-        // Card navigation
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { on.prevCard() }) { Text("Prev") }
-            Button(onClick = { on.nextCard() }) { Text("Next") }
-        }
+            // Direction toggle
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { on.changeDirection(Direction.SRC_TO_TGT) },
+                    enabled = st.direction != Direction.SRC_TO_TGT
+                ) { Text("Source → Target") }
+                OutlinedButton(
+                    onClick = { on.changeDirection(Direction.TGT_TO_SRC) },
+                    enabled = st.direction != Direction.TGT_TO_SRC
+                ) { Text("Target → Source") }
+            }
 
-        // Chunk paging (optional)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
-            OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
+            // Progress
+            Text("${st.index + 1} / ${st.pool.size}", style = MaterialTheme.typography.labelLarge)
+
+            // Prompt
+            Text(
+                st.promptText,
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+
+            // Answer bubble: capped height + internal scroll; tap to reveal / advance
+            val innerScroll = rememberScrollState()
+            Surface(
+                onClick = { if (st.revealed) on.nextCard() else on.toggleReveal() },
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 80.dp, max = 220.dp)  // <- keep buttons visible
+                    .padding(horizontal = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(innerScroll),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (st.revealed) {
+                        Text(
+                            st.answerText,
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = TextAlign.Center,
+                            overflow = TextOverflow.Ellipsis,
+                            softWrap = true,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        Text(
+                            "Tap to reveal",
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+
+            // Optional: chunk paging
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
+                OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
+            }
         }
     }
 }
