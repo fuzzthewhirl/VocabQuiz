@@ -73,6 +73,9 @@ class VocabRepository(
         byPair.mapValues { it.value.size }
     }
 
+
+    fun pairSize(pair: LanguagePair): Int = byPair[pair]?.size ?: 0
+
     fun availablePairs(): List<LanguagePair> = byPair.keys.sortedBy { it.toString() }
 
     fun getChunk(pair: LanguagePair, offset: Int, size: Int): List<Vocab> {
