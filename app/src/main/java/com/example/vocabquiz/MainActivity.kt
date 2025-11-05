@@ -72,7 +72,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//@file:OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
     val langs = listOf(Lang.FI, Lang.ES, Lang.EN)
