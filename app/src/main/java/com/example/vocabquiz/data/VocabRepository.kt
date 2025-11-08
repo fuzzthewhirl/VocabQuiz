@@ -1,7 +1,11 @@
 package com.example.vocabquiz.data
 
+import android.app.Application
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
+import androidx.core.content.getSystemService
 import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
@@ -17,7 +21,22 @@ class VocabRepository(
     private var all: List<Vocab> = emptyList()
     private var byPair: Map<LanguagePair, List<Vocab>> = emptyMap()
 
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
     suspend fun loadAll(): Map<LanguagePair, Int> = withContext(Dispatchers.IO) {
+
+        if (!isNetworkAvailable()) {
+            android.util.Log.e("VocabRepo", "No internet connection available.")
+            return@withContext emptyMap()
+        }
+        else{
+            android.util.Log.i("VocabRepo", "Internet connection OK.")
+        }
         val service = SheetsServiceFactory.create(context)
             ?: run { clearAndLog("No Sheets service (not signed in?)"); return@withContext emptyMap() }
 
