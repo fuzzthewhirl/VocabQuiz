@@ -46,6 +46,13 @@ import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
 import com.example.vocabquiz.ui.QuizViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import android.widget.Toast
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,45 +147,70 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
 
             // Answer bubble (tap to reveal / advance)
             val innerScroll = rememberScrollState()
-            Surface(
-                onClick = { if (st.revealed) on.nextCard() else on.toggleReveal() },
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = 2.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 80.dp, max = 220.dp)
-                    .padding(horizontal = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(innerScroll),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (st.revealed) {
-                        Text(
-                            st.answerText,
-                            style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center,
-                            overflow = TextOverflow.Ellipsis,
-                            softWrap = true,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    } else {
-                        Text(
-                            "Tap to reveal",
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-            }
+            AnswerBubble(
+                st = st,
+                onNext = { on.nextCard() },
+                onToggleReveal = { on.toggleReveal() }
+            )
 
             // Optional chunk paging
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
                 OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val innerScroll = rememberScrollState()
+
+    Surface(
+        // remove onClick from Surface and use combinedClickable on the modifier:
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 2.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 80.dp, max = 220.dp)
+            .padding(horizontal = 8.dp)
+            .combinedClickable(
+                onClick = { if (st.revealed) onNext() else onToggleReveal() },
+                onLongClick = {
+                    // copy revealed answer if available; otherwise copy the prompt
+                    val textToCopy = if (st.revealed) st.answerText else st.promptText
+                    if (textToCopy.isNotBlank()) {
+                        clipboard.setText(AnnotatedString(textToCopy))
+                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(innerScroll),
+            contentAlignment = Alignment.Center
+        ) {
+            if (st.revealed) {
+                Text(
+                    st.answerText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = true,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                Text(
+                    "Tap to reveal\n(Long-press to copy prompt)",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
