@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.vocabquiz.ui.theme.VocabQuizTheme
 
 
 class MainActivity : ComponentActivity() {
@@ -65,7 +67,11 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme {
+
+            // Use system dark mode automatically:
+            val dark = isSystemInDarkTheme()
+
+            VocabQuizTheme (darkTheme = dark) {
                 val vm: QuizViewModel = viewModel()
                 val st by vm.state.collectAsState()
 
