@@ -152,7 +152,6 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
             )
 
             // Answer bubble (tap to reveal / advance)
-            val innerScroll = rememberScrollState()
             AnswerBubble(
                 st = st,
                 onNext = { on.nextCard() },
@@ -255,35 +254,6 @@ private fun PairDropdown(
                         expanded = false
                         onSelect(pair)
                     }
-                )
-            }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LangDropdown(
-    label: String,
-    items: List<Lang>,
-    selected: Lang,
-    onSelect: (Lang) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        TextField(
-            value = "${label}: ${selected.code}",
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.menuAnchor()
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            items.forEach { l ->
-                DropdownMenuItem(
-                    text = { Text(l.code) },
-                    onClick = { expanded = false; onSelect(l) }
                 )
             }
         }
