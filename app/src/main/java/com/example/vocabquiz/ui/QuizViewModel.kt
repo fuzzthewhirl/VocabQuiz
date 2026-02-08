@@ -112,14 +112,6 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun changeDirection(direction: Direction) {
-        val s = _state.value
-        val src = s.sourceLang ?: return
-        val tgt = s.targetLang ?: return
-        _state.value = s.copy(direction = direction, revealed = false)
-        setCard(s.index, reveal = false) // recompute prompt/answer for same card
-    }
-
     fun nextPage() {
         val s = _state.value
         val pair = currentPair() ?: return

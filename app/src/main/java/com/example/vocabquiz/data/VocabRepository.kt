@@ -95,8 +95,6 @@ class VocabRepository(
 
     fun pairSize(pair: LanguagePair): Int = byPair[pair]?.size ?: 0
 
-    fun availablePairs(): List<LanguagePair> = byPair.keys.sortedBy { it.toString() }
-
     fun getChunk(pair: LanguagePair, offset: Int, size: Int): List<Vocab> {
         val list = byPair[pair].orEmpty()
         if (list.isEmpty() || offset >= list.size) return emptyList()
