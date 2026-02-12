@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.vocabquiz
 
 import android.content.Intent
@@ -8,6 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 
+@Suppress("DEPRECATION")
 class SignInActivity : ComponentActivity() {
     private val signInLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
