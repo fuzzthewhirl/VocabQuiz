@@ -145,8 +145,8 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(onClick = { on.prevCard() }, modifier = Modifier.weight(1f)) { Text("Prev") }
-                    Button(onClick = { on.nextCard() }, modifier = Modifier.weight(1f)) { Text("Next") }
+                    OutlinedButton(onClick = { on.prevPage() }, modifier = Modifier.weight(1f)) { Text("Prev chunk") }
+                    OutlinedButton(onClick = { on.nextPage() }, modifier = Modifier.weight(1f)) { Text("Next chunk") }
                 }
             }
         }
@@ -194,10 +194,10 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                 onToggleReveal = { on.toggleReveal() }
             )
 
-            // Optional chunk paging
+            // Card paging
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
-                OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
+                Button(onClick = { on.prevCard() }) { Text("Prev") }
+                Button(onClick = { on.nextCard() }) { Text("Next") }
             }
         }
     }
