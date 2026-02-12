@@ -16,10 +16,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.random.Random
 import kotlin.math.max
-import kotlin.math.min
 
 data class QuizState(
     val status: Status = Status.Loading,
+    val initPhase: InitPhase = InitPhase.Starting,
     val sourceLang: Lang? = null,
     val targetLang: Lang? = null,
     val direction: Direction = Direction.SRC_TO_TGT,
@@ -34,6 +34,15 @@ data class QuizState(
     val revealed: Boolean = false
 ) {
     enum class Status { Loading, Ready, Error }
+    enum class InitPhase {
+        Starting,
+        LoadingData,
+        ReadingSettings,
+        ChoosingPair,
+        LoadingChunk,
+        Ready,
+        Error
+    }
 }
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
@@ -52,12 +61,15 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
             // 1) Load all data (IO thread is handled inside repo)
             repo.loadAll()
 
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ReadingSettings)
             // 2) Read saved settings with a timeout so we never block startup
             val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
 
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
             // 3) Decide starting pair (saved or defaults)
             val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
             val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
@@ -87,6 +99,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             if (!hasResume) settings.saveIndex(0)
 
             // 5) Load that page and jump to saved (clamped) index
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingChunk)
             val desiredIndex = if (hasResume) snap.index else 0
             loadChunkFor(pair, _state.value.direction, startOffset, desiredIndex)
         }
@@ -180,10 +193,16 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 val chunk = repo.getChunk(pair, offset, size)
                 if (chunk.isEmpty()) {
                     android.util.Log.d("QuizVM", "Empty chunk at offset=$offset for $pair")
+                    _state.value = _state.value.copy(
+                        status = QuizState.Status.Error,
+                        initPhase = QuizState.InitPhase.Error
+                    )
                     return@launch
                 }
+                android.util.Log.d("QuizVM", "Chunk with direction=$direction for $pair")
                 _state.value = _state.value.copy(
                     status = QuizState.Status.Ready,
+                    initPhase = QuizState.InitPhase.Ready,
                     pageOffset = offset,
                     pool = chunk,
                     index = 0,

@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">VocabQuiz</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="prev">Prev</string>
+    <string name="next">Next</string>
+    <string name="prev_chunk">Prev chunk</string>
+    <string name="next_chunk">Next chunk</string>
+    <string name="language_pair">Language pair</string>
+    <string name="select">Select</string>
+    <string name="no_data">No data (sign-in / sheet / internet)</string>
+    <string name="tap_to_reveal">Tap to reveal\n(Long-press to copy prompt)</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="init_starting">Starting…</string>
+    <string name="init_loading_data">Loading vocab data…</string>
+    <string name="init_reading_settings">Reading settings…</string>
+    <string name="init_choosing_pair">Choosing language pair…</string>
+    <string name="init_loading_chunk">Loading quiz chunk…</string>
+    <string name="init_ready">Ready</string>
+    <string name="init_error">Initialization error</string>
 </resources>

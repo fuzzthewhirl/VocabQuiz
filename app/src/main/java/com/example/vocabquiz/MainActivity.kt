@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
@@ -89,8 +90,26 @@ class MainActivity : ComponentActivity() {
                 val st by vm.state.collectAsState()
 
                 when (st.status) {
-                    QuizState.Status.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
-                    QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text("No data (sign-in / sheet / internet)") }
+                    QuizState.Status.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Text(
+                                text = initPhaseLabel(st.initPhase),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        }
+                    }
+                    QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(stringResource(R.string.no_data))
+                            Text(
+                                text = initPhaseLabel(st.initPhase),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        }
+                    }
                     QuizState.Status.Ready -> {
                         when (screen) {
                             Screen.Main -> FlashcardScreen(
@@ -125,12 +144,12 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("VocabQuiz") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(
                             painter = painterResource(R.drawable.ic_fa_gear),
-                            contentDescription = "Settings"
+                            contentDescription = stringResource(R.string.settings)
                         )
                     }
                 }
@@ -145,8 +164,12 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(onClick = { on.prevPage() }, modifier = Modifier.weight(1f)) { Text("Prev chunk") }
-                    OutlinedButton(onClick = { on.nextPage() }, modifier = Modifier.weight(1f)) { Text("Next chunk") }
+                    OutlinedButton(onClick = { on.prevPage() }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.prev_chunk))
+                    }
+                    OutlinedButton(onClick = { on.nextPage() }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.next_chunk))
+                    }
                 }
             }
         }
@@ -164,7 +187,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
         ) {
             // 🔽 Single dropdown for pair selection
             PairDropdown(
-                label = "Language pair",
+                label = stringResource(R.string.language_pair),
                 items = pairs,
                 selected = st.currentPair(),
                 onSelect = { pair ->
@@ -196,8 +219,8 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
 
             // Card paging
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { on.prevCard() }) { Text("Prev") }
-                Button(onClick = { on.nextCard() }) { Text("Next") }
+                Button(onClick = { on.prevCard() }) { Text(stringResource(R.string.prev)) }
+                Button(onClick = { on.nextCard() }) { Text(stringResource(R.string.next)) }
             }
         }
     }
@@ -207,7 +230,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
 @Composable
 private fun SettingsScreen(onBack: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Settings") }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings)) }) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -218,7 +241,7 @@ private fun SettingsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = onBack) { Text("Back") }
+            Button(onClick = onBack) { Text(stringResource(R.string.back)) }
         }
     }
 }
@@ -246,7 +269,11 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
                     val textToCopy = if (st.revealed) st.answerText else st.promptText
                     if (textToCopy.isNotBlank()) {
                         clipboard.setText(AnnotatedString(textToCopy))
-                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.copied_to_clipboard),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             )
@@ -268,7 +295,7 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
                 )
             } else {
                 Text(
-                    "Tap to reveal\n(Long-press to copy prompt)",
+                    stringResource(R.string.tap_to_reveal),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(16.dp)
@@ -293,7 +320,7 @@ private fun PairDropdown(
     onSelect: (LanguagePair) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val currentLabel = selected?.toString() ?: "Select"
+    val currentLabel = selected?.toString() ?: stringResource(R.string.select)
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         TextField(
@@ -314,5 +341,18 @@ private fun PairDropdown(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun initPhaseLabel(phase: QuizState.InitPhase): String {
+    return when (phase) {
+        QuizState.InitPhase.Starting -> stringResource(R.string.init_starting)
+        QuizState.InitPhase.LoadingData -> stringResource(R.string.init_loading_data)
+        QuizState.InitPhase.ReadingSettings -> stringResource(R.string.init_reading_settings)
+        QuizState.InitPhase.ChoosingPair -> stringResource(R.string.init_choosing_pair)
+        QuizState.InitPhase.LoadingChunk -> stringResource(R.string.init_loading_chunk)
+        QuizState.InitPhase.Ready -> stringResource(R.string.init_ready)
+        QuizState.InitPhase.Error -> stringResource(R.string.init_error)
     }
 }

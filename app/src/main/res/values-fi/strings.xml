@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">VocabQuiz</string>
+    <string name="settings">Asetukset</string>
+    <string name="back">Takaisin</string>
+    <string name="prev">Edellinen</string>
+    <string name="next">Seuraava</string>
+    <string name="prev_chunk">Edellinen lohko</string>
+    <string name="next_chunk">Seuraava lohko</string>
+    <string name="language_pair">Kielipari</string>
+    <string name="select">Valitse</string>
+    <string name="no_data">Ei dataa (kirjautuminen / taulukko / internet)</string>
+    <string name="tap_to_reveal">Napauta paljastaaksesi\n(Paina pitkään kopioidaksesi kysymyksen)</string>
+    <string name="copied_to_clipboard">Kopioitu leikepöydälle</string>
+    <string name="init_starting">Käynnistetään…</string>
+    <string name="init_loading_data">Ladataan sanastoa…</string>
+    <string name="init_reading_settings">Luetaan asetuksia…</string>
+    <string name="init_choosing_pair">Valitaan kielipari…</string>
+    <string name="init_loading_chunk">Ladataan tehtävälohkoa…</string>
+    <string name="init_ready">Valmis</string>
+    <string name="init_error">Alustuksen virhe</string>
+</resources>
