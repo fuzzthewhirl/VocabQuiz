@@ -23,12 +23,15 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
@@ -55,6 +59,10 @@ import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.vocabquiz.ui.theme.VocabQuizTheme
 
+private enum class Screen {
+    Main,
+    Settings
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,21 +80,32 @@ class MainActivity : ComponentActivity() {
             val dark = isSystemInDarkTheme()
 
             VocabQuizTheme (darkTheme = dark) {
+                var screen by remember { mutableStateOf(Screen.Main) }
                 val vm: QuizViewModel = viewModel()
                 val st by vm.state.collectAsState()
 
                 when (st.status) {
                     QuizState.Status.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
                     QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text("No data (sign-in / sheet / internet)") }
-                    QuizState.Status.Ready -> FlashcardScreen(st, on = vm)
+                    QuizState.Status.Ready -> {
+                        when (screen) {
+                            Screen.Main -> FlashcardScreen(
+                                st = st,
+                                on = vm,
+                                onOpenSettings = { screen = Screen.Settings }
+                            )
+                            Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Main })
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
+fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit) {
     val outerScroll = rememberScrollState()
 
     // All possible ordered pairs
@@ -100,6 +119,19 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
     )
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("VocabQuiz") },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_fa_gear),
+                            contentDescription = "Settings"
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             BottomAppBar {
                 Row(
@@ -163,6 +195,26 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel) {
                 OutlinedButton(onClick = { on.prevPage() }) { Text("Prev chunk") }
                 OutlinedButton(onClick = { on.nextPage() }) { Text("Next chunk") }
             }
+        }
+    }
+}
+
+ @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Settings") }) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(onClick = onBack) { Text("Back") }
         }
     }
 }
