@@ -27,6 +27,7 @@
     <string name="settings_error_missing_id">Syötä taulukon ID jatkaaksesi.</string>
     <string name="settings_error_fetch_failed">Välilehtiä ei voitu hakea. Tarkista kirjautuminen ja verkko.</string>
     <string name="settings_error_no_sheets">Taulukosta ei löytynyt välilehtiä.</string>
+    <string name="settings_error_data_load_failed">Välilehti ladattiin, mutta yhteensopivaa sanastoa ei löytynyt.</string>
     <string name="settings_open">Avaa asetukset</string>
     <string name="settings_last_error_time">Viimeisin virhe: %1$s</string>
     <string name="settings_last_error_message">Virheen tiedot: %1$s</string>

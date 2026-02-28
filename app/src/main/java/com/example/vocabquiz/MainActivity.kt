@@ -479,5 +479,6 @@ private fun settingsErrorLabel(error: SettingsError): String {
         SettingsError.MissingSpreadsheetId -> stringResource(R.string.settings_error_missing_id)
         SettingsError.FetchFailed -> stringResource(R.string.settings_error_fetch_failed)
         SettingsError.NoSheets -> stringResource(R.string.settings_error_no_sheets)
+        SettingsError.DataLoadFailed -> stringResource(R.string.settings_error_data_load_failed)
     }
 }

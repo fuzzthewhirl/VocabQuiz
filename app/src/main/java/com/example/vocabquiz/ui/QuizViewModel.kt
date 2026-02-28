@@ -61,7 +61,8 @@ data class SettingsUiState(
 enum class SettingsError {
     MissingSpreadsheetId,
     FetchFailed,
-    NoSheets
+    NoSheets,
+    DataLoadFailed
 }
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
@@ -126,16 +127,43 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
-            repo.loadAll(spreadsheetId, sheetTab)
+            val sizes = repo.loadAll(spreadsheetId, sheetTab)
+            if (sizes.isEmpty()) {
+                recordSettingsError(SettingsError.DataLoadFailed, "No vocab rows loaded")
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error
+                )
+                return@launch
+            }
+
+            val availablePairs = repo.availablePairs()
+            if (availablePairs.isEmpty()) {
+                recordSettingsError(SettingsError.DataLoadFailed, "No language pairs available")
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error
+                )
+                return@launch
+            }
 
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
-            val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
-            val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
-            val pair = LanguagePair(startSrc, startTgt)
+            val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> null }
+            val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> null }
+            val desiredPair = if (startSrc != null && startTgt != null) {
+                LanguagePair(startSrc, startTgt)
+            } else {
+                null
+            }
+            val pair = if (desiredPair != null && availablePairs.contains(desiredPair)) {
+                desiredPair
+            } else {
+                availablePairs.first()
+            }
 
             _state.value = _state.value.copy(
-                sourceLang = Lang.valueOf(startSrc.uppercase()),
-                targetLang = Lang.valueOf(startTgt.uppercase())
+                sourceLang = Lang.valueOf(pair.src.uppercase()),
+                targetLang = Lang.valueOf(pair.tgt.uppercase())
             )
 
             val total = repo.pairSize(pair)
@@ -148,7 +176,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
             }
 
-            settings.savePair(startSrc, startTgt)
+            settings.savePair(pair.src, pair.tgt)
             settings.saveOffset(startOffset)
             if (!hasResume) settings.saveIndex(0)
 
@@ -272,17 +300,45 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             revealed = false
         )
 
-        repo.loadAll(spreadsheetId, sheetTab)
+        val sizes = repo.loadAll(spreadsheetId, sheetTab)
+        if (sizes.isEmpty()) {
+            recordSettingsError(SettingsError.DataLoadFailed, "No vocab rows loaded")
+            _state.value = _state.value.copy(
+                status = QuizState.Status.Error,
+                initPhase = QuizState.InitPhase.Error
+            )
+            return
+        }
+
+        val availablePairs = repo.availablePairs()
+        if (availablePairs.isEmpty()) {
+            recordSettingsError(SettingsError.DataLoadFailed, "No language pairs available")
+            _state.value = _state.value.copy(
+                status = QuizState.Status.Error,
+                initPhase = QuizState.InitPhase.Error
+            )
+            return
+        }
+
         val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
 
         _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
-        val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
-        val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
-        val pair = LanguagePair(startSrc, startTgt)
+        val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> null }
+        val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> null }
+        val desiredPair = if (startSrc != null && startTgt != null) {
+            LanguagePair(startSrc, startTgt)
+        } else {
+            null
+        }
+        val pair = if (desiredPair != null && availablePairs.contains(desiredPair)) {
+            desiredPair
+        } else {
+            availablePairs.first()
+        }
 
         _state.value = _state.value.copy(
-            sourceLang = Lang.valueOf(startSrc.uppercase()),
-            targetLang = Lang.valueOf(startTgt.uppercase())
+            sourceLang = Lang.valueOf(pair.src.uppercase()),
+            targetLang = Lang.valueOf(pair.tgt.uppercase())
         )
 
         val total = repo.pairSize(pair)
@@ -295,7 +351,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
         }
 
-        settings.savePair(startSrc, startTgt)
+        settings.savePair(pair.src, pair.tgt)
         settings.saveOffset(startOffset)
         if (!hasResume) settings.saveIndex(0)
 
@@ -372,6 +428,10 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 val chunk = repo.getChunk(pair, offset, size)
                 if (chunk.isEmpty()) {
                     android.util.Log.d("QuizVM", "Empty chunk at offset=$offset for $pair")
+                    recordSettingsError(
+                        SettingsError.DataLoadFailed,
+                        "No data for pair ${pair.src}-${pair.tgt}"
+                    )
                     _state.value = _state.value.copy(
                         status = QuizState.Status.Error,
                         initPhase = QuizState.InitPhase.Error
