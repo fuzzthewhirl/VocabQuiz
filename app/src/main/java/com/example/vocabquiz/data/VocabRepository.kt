@@ -1,11 +1,10 @@
 package com.example.vocabquiz.data
 
-import android.app.Application
+import SheetsServiceFactory
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import androidx.core.content.getSystemService
 import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
@@ -13,10 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class VocabRepository(
-    private val context: Context,
-    private val spreadsheetId: String,
-    // ✅ put your actual tab name here (e.g., "Sheet1" or "Saved")
-    private val sheetTab: String = "Saved translations"
+    private val context: Context
 ) {
     private var all: List<Vocab> = emptyList()
     private var byPair: Map<LanguagePair, List<Vocab>> = emptyMap()
@@ -28,14 +24,15 @@ class VocabRepository(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    suspend fun loadAll(): Map<LanguagePair, Int> = withContext(Dispatchers.IO) {
+    suspend fun loadAll(spreadsheetId: String, sheetTab: String): Map<LanguagePair, Int> =
+        withContext(Dispatchers.IO) {
 
         if (!isNetworkAvailable()) {
-            android.util.Log.e("VocabRepo", "No internet connection available.")
+            Log.e("VocabRepo", "No internet connection available.")
             return@withContext emptyMap()
         }
         else{
-            android.util.Log.i("VocabRepo", "Internet connection OK.")
+            Log.i("VocabRepo", "Internet connection OK.")
         }
         val service = SheetsServiceFactory.create(context)
             ?: run { clearAndLog("No Sheets service (not signed in?)"); return@withContext emptyMap() }
@@ -90,6 +87,27 @@ class VocabRepository(
         byPair.forEach { (pair, list) -> Log.d("VocabRepo", "Pair $pair -> ${list.size} rows") }
 
         byPair.mapValues { it.value.size }
+    }
+
+    suspend fun getSheetNames(spreadsheetId: String): List<String> = withContext(Dispatchers.IO) {
+        if (!isNetworkAvailable()) {
+            Log.e("VocabRepo", "No internet connection available.")
+            return@withContext emptyList()
+        }
+        val service = SheetsServiceFactory.create(context)
+            ?: run {
+                Log.e("VocabRepo", "No Sheets service (not signed in?)")
+                return@withContext emptyList()
+            }
+
+        val resp = runCatching {
+            service.spreadsheets().get(spreadsheetId).setFields("sheets.properties.title").execute()
+        }.getOrElse { t ->
+            Log.e("VocabRepo", "Sheets metadata fetch failed", t)
+            return@withContext emptyList()
+        }
+
+        resp.sheets?.mapNotNull { it.properties?.title } ?: emptyList()
     }
 
 

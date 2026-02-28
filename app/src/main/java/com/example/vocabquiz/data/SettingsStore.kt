@@ -1,7 +1,6 @@
 package com.example.vocabquiz.data
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -18,13 +17,17 @@ class SettingsStore(private val context: Context) {
         val LAST_TGT  = stringPreferencesKey("last_tgt")
         val LAST_OFF  = intPreferencesKey("last_offset")   // chunk offset
         val LAST_IDX  = intPreferencesKey("last_index")    // index within chunk
+        val SPREADSHEET_ID = stringPreferencesKey("spreadsheet_id")
+        val SHEET_TAB = stringPreferencesKey("sheet_tab")
     }
 
     data class Snapshot(
         val src: String? = null,
         val tgt: String? = null,
         val offset: Int = 0,
-        val index: Int = 0
+        val index: Int = 0,
+        val spreadsheetId: String? = null,
+        val sheetTab: String? = null
     )
 
     val snapshot: Flow<Snapshot> = context.dataStore.data.map { p ->
@@ -32,7 +35,9 @@ class SettingsStore(private val context: Context) {
             src = p[Keys.LAST_SRC],
             tgt = p[Keys.LAST_TGT],
             offset = p[Keys.LAST_OFF] ?: 0,
-            index  = p[Keys.LAST_IDX] ?: 0
+            index  = p[Keys.LAST_IDX] ?: 0,
+            spreadsheetId = p[Keys.SPREADSHEET_ID],
+            sheetTab = p[Keys.SHEET_TAB]
         )
     }
 
@@ -44,5 +49,13 @@ class SettingsStore(private val context: Context) {
     }
     suspend fun saveIndex(index: Int) {
         context.dataStore.edit { it[Keys.LAST_IDX] = index }
+    }
+
+    suspend fun saveSpreadsheetId(spreadsheetId: String) {
+        context.dataStore.edit { it[Keys.SPREADSHEET_ID] = spreadsheetId }
+    }
+
+    suspend fun saveSheetTab(sheetTab: String) {
+        context.dataStore.edit { it[Keys.SHEET_TAB] = sheetTab }
     }
 }

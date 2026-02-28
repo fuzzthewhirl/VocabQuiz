@@ -36,8 +36,9 @@ data class QuizState(
     enum class Status { Loading, Ready, Error }
     enum class InitPhase {
         Starting,
-        LoadingData,
         ReadingSettings,
+        LoadingSheets,
+        LoadingData,
         ChoosingPair,
         LoadingChunk,
         Ready,
@@ -45,60 +46,98 @@ data class QuizState(
     }
 }
 
+data class SettingsUiState(
+    val spreadsheetId: String,
+    val sheetNames: List<String> = emptyList(),
+    val selectedSheet: String? = null,
+    val loading: Boolean = false,
+    val error: SettingsError? = null
+)
+
+enum class SettingsError {
+    MissingSpreadsheetId,
+    FetchFailed,
+    NoSheets
+}
+
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
     private val settings = SettingsStore(app)
 
-    // TODO: put your real Spreadsheet ID here (you already did)
-    private val spreadsheetId = "1HI8QRSYkGNsXvyO2Grx3o1wFe6Q9uscyfAO31Xe50QQ"
-    private val repo = VocabRepository(app, spreadsheetId)
+    private val repo = VocabRepository(app)
 
     private val _state = MutableStateFlow(QuizState())
     val state = _state.asStateFlow()
+
+    private val _settingsState = MutableStateFlow(
+        SettingsUiState(spreadsheetId = DEFAULT_SPREADSHEET_ID)
+    )
+    val settingsState = _settingsState.asStateFlow()
 
     // single-flight gate to avoid overlapping loads
     private var loading = false
 
     init {
         viewModelScope.launch {
-            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
-            // 1) Load all data (IO thread is handled inside repo)
-            repo.loadAll()
-
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ReadingSettings)
-            // 2) Read saved settings with a timeout so we never block startup
             val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
 
+            val spreadsheetId = snap.spreadsheetId?.ifBlank { null } ?: DEFAULT_SPREADSHEET_ID
+            val savedSheetTab = snap.sheetTab?.ifBlank { null }
+
+            _settingsState.value = _settingsState.value.copy(
+                spreadsheetId = spreadsheetId,
+                selectedSheet = savedSheetTab
+            )
+
+            val sheetTab = if (savedSheetTab == null) {
+                _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingSheets)
+                val names = repo.getSheetNames(spreadsheetId)
+                if (names.isEmpty()) {
+                    _state.value = _state.value.copy(
+                        status = QuizState.Status.Error,
+                        initPhase = QuizState.InitPhase.Error
+                    )
+                    return@launch
+                }
+                val first = names.first()
+                _settingsState.value = _settingsState.value.copy(
+                    sheetNames = names,
+                    selectedSheet = first
+                )
+                settings.saveSheetTab(first)
+                first
+            } else {
+                savedSheetTab
+            }
+
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
+            repo.loadAll(spreadsheetId, sheetTab)
+
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
-            // 3) Decide starting pair (saved or defaults)
             val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
             val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
             val pair = LanguagePair(startSrc, startTgt)
 
-            // Reflect chosen pair in state (Lang enums)
             _state.value = _state.value.copy(
                 sourceLang = Lang.valueOf(startSrc.uppercase()),
                 targetLang = Lang.valueOf(startTgt.uppercase())
             )
 
-            // 4) Choose offset: resume if valid, else random chunk start
             val total = repo.pairSize(pair)
             val size  = _state.value.pageSize
             val hasResume = snap.offset in 0 until total
             val maxStart = max(0, total - size)
             val startOffset = if (hasResume) {
-                // align to page boundary
                 (snap.offset / size) * size
             } else {
                 if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
             }
 
-            // Persist where we start (nice to have)
             settings.savePair(startSrc, startTgt)
             settings.saveOffset(startOffset)
             if (!hasResume) settings.saveIndex(0)
 
-            // 5) Load that page and jump to saved (clamped) index
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingChunk)
             val desiredIndex = if (hasResume) snap.index else 0
             loadChunkFor(pair, _state.value.direction, startOffset, desiredIndex)
@@ -123,6 +162,111 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             _state.value = _state.value.copy(sourceLang = src, targetLang = tgt, revealed = false)
             loadChunkFor(pair, _state.value.direction, randomOffset, desiredIndex = 0)
         }
+    }
+
+    fun onSpreadsheetIdChange(value: String) {
+        _settingsState.value = _settingsState.value.copy(
+            spreadsheetId = value,
+            sheetNames = emptyList(),
+            selectedSheet = null,
+            error = null
+        )
+    }
+
+    fun selectSheet(sheet: String) {
+        _settingsState.value = _settingsState.value.copy(selectedSheet = sheet)
+    }
+
+    fun refreshSheetNames() {
+        val spreadsheetId = _settingsState.value.spreadsheetId.trim()
+        if (spreadsheetId.isBlank()) {
+            _settingsState.value = _settingsState.value.copy(error = SettingsError.MissingSpreadsheetId)
+            return
+        }
+
+        viewModelScope.launch {
+            _settingsState.value = _settingsState.value.copy(loading = true, error = null)
+            val names = repo.getSheetNames(spreadsheetId)
+            if (names.isEmpty()) {
+                _settingsState.value = _settingsState.value.copy(
+                    loading = false,
+                    sheetNames = emptyList(),
+                    selectedSheet = null,
+                    error = SettingsError.NoSheets
+                )
+                return@launch
+            }
+
+            val current = _settingsState.value.selectedSheet
+            val selected = if (current != null && names.contains(current)) current else names.first()
+            _settingsState.value = _settingsState.value.copy(
+                loading = false,
+                sheetNames = names,
+                selectedSheet = selected,
+                error = null
+            )
+        }
+    }
+
+    fun ensureSheetNamesLoaded() {
+        val current = _settingsState.value
+        if (current.sheetNames.isEmpty() && !current.loading) {
+            refreshSheetNames()
+        }
+    }
+
+    fun saveSettingsAndReload() {
+        val current = _settingsState.value
+        val spreadsheetId = current.spreadsheetId.trim()
+        val sheetTab = current.selectedSheet
+        if (spreadsheetId.isBlank() || sheetTab == null) return
+
+        viewModelScope.launch {
+            settings.saveSpreadsheetId(spreadsheetId)
+            settings.saveSheetTab(sheetTab)
+            reloadData(spreadsheetId, sheetTab)
+        }
+    }
+
+    private suspend fun reloadData(spreadsheetId: String, sheetTab: String) {
+        _state.value = _state.value.copy(
+            status = QuizState.Status.Loading,
+            initPhase = QuizState.InitPhase.LoadingData,
+            pool = emptyList(),
+            index = 0,
+            revealed = false
+        )
+
+        repo.loadAll(spreadsheetId, sheetTab)
+        val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
+
+        _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
+        val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> "fi" }
+        val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> "es" }
+        val pair = LanguagePair(startSrc, startTgt)
+
+        _state.value = _state.value.copy(
+            sourceLang = Lang.valueOf(startSrc.uppercase()),
+            targetLang = Lang.valueOf(startTgt.uppercase())
+        )
+
+        val total = repo.pairSize(pair)
+        val size  = _state.value.pageSize
+        val hasResume = snap.offset in 0 until total
+        val maxStart = max(0, total - size)
+        val startOffset = if (hasResume) {
+            (snap.offset / size) * size
+        } else {
+            if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
+        }
+
+        settings.savePair(startSrc, startTgt)
+        settings.saveOffset(startOffset)
+        if (!hasResume) settings.saveIndex(0)
+
+        _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingChunk)
+        val desiredIndex = if (hasResume) snap.index else 0
+        loadChunkFor(pair, _state.value.direction, startOffset, desiredIndex)
     }
 
     fun nextPage() {
@@ -224,5 +368,9 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             Direction.TGT_TO_SRC -> v.target to v.source
         }
         _state.value = s.copy(index = i, promptText = prompt, answerText = answer, revealed = reveal)
+    }
+
+    companion object {
+        private const val DEFAULT_SPREADSHEET_ID = "1HI8QRSYkGNsXvyO2Grx3o1wFe6Q9uscyfAO31Xe50QQ"
     }
 }

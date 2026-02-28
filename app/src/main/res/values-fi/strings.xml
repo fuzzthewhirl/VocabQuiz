@@ -14,8 +14,17 @@
     <string name="init_starting">Käynnistetään…</string>
     <string name="init_loading_data">Ladataan sanastoa…</string>
     <string name="init_reading_settings">Luetaan asetuksia…</string>
+    <string name="init_loading_sheets">Ladataan välilehtiä…</string>
     <string name="init_choosing_pair">Valitaan kielipari…</string>
     <string name="init_loading_chunk">Ladataan tehtävälohkoa…</string>
     <string name="init_ready">Valmis</string>
     <string name="init_error">Alustuksen virhe</string>
+    <string name="settings_spreadsheet_id">Taulukon ID</string>
+    <string name="settings_sheet">Välilehti</string>
+    <string name="settings_refresh">Päivitä</string>
+    <string name="settings_save">Tallenna</string>
+    <string name="settings_loading_sheets">Ladataan välilehtiä…</string>
+    <string name="settings_error_missing_id">Syötä taulukon ID jatkaaksesi.</string>
+    <string name="settings_error_fetch_failed">Välilehtiä ei voitu hakea. Tarkista kirjautuminen ja verkko.</string>
+    <string name="settings_error_no_sheets">Taulukosta ei löytynyt välilehtiä.</string>
 </resources>

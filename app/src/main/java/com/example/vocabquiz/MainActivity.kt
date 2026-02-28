@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
 import com.example.vocabquiz.ui.QuizViewModel
+import com.example.vocabquiz.ui.SettingsError
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -117,7 +119,7 @@ class MainActivity : ComponentActivity() {
                                 on = vm,
                                 onOpenSettings = { screen = Screen.Settings }
                             )
-                            Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Main })
+                            Screen.Settings -> SettingsScreen(on = vm, onBack = { screen = Screen.Main })
                         }
                     }
                 }
@@ -226,9 +228,15 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
     }
 }
 
- @OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SettingsScreen(onBack: () -> Unit) {
+private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
+    val ui by on.settingsState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        on.ensureSheetNamesLoaded()
+    }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings)) }) }
     ) { innerPadding ->
@@ -238,10 +246,59 @@ private fun SettingsScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .systemBarsPadding()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Button(onClick = onBack) { Text(stringResource(R.string.back)) }
+            Text(stringResource(R.string.settings_spreadsheet_id), style = MaterialTheme.typography.labelLarge)
+            TextField(
+                value = ui.spreadsheetId,
+                onValueChange = { on.onSpreadsheetIdChange(it) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(onClick = { on.refreshSheetNames() }) {
+                    Text(stringResource(R.string.settings_refresh))
+                }
+                if (ui.loading) {
+                    CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
+                    Text(stringResource(R.string.settings_loading_sheets))
+                }
+            }
+
+            ui.error?.let { error ->
+                Text(
+                    text = settingsErrorLabel(error),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            if (ui.sheetNames.isNotEmpty()) {
+                SheetDropdown(
+                    label = stringResource(R.string.settings_sheet),
+                    items = ui.sheetNames,
+                    selected = ui.selectedSheet,
+                    onSelect = { on.selectSheet(it) }
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val canSave = ui.spreadsheetId.isNotBlank() && ui.selectedSheet != null && !ui.loading
+                Button(
+                    onClick = { on.saveSettingsAndReload(); onBack() },
+                    enabled = canSave
+                ) {
+                    Text(stringResource(R.string.settings_save))
+                }
+                OutlinedButton(onClick = onBack) { Text(stringResource(R.string.back)) }
+            }
         }
     }
 }
@@ -348,11 +405,54 @@ private fun PairDropdown(
 private fun initPhaseLabel(phase: QuizState.InitPhase): String {
     return when (phase) {
         QuizState.InitPhase.Starting -> stringResource(R.string.init_starting)
-        QuizState.InitPhase.LoadingData -> stringResource(R.string.init_loading_data)
         QuizState.InitPhase.ReadingSettings -> stringResource(R.string.init_reading_settings)
+        QuizState.InitPhase.LoadingSheets -> stringResource(R.string.init_loading_sheets)
+        QuizState.InitPhase.LoadingData -> stringResource(R.string.init_loading_data)
         QuizState.InitPhase.ChoosingPair -> stringResource(R.string.init_choosing_pair)
         QuizState.InitPhase.LoadingChunk -> stringResource(R.string.init_loading_chunk)
         QuizState.InitPhase.Ready -> stringResource(R.string.init_ready)
         QuizState.InitPhase.Error -> stringResource(R.string.init_error)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SheetDropdown(
+    label: String,
+    items: List<String>,
+    selected: String?,
+    onSelect: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val currentLabel = selected ?: stringResource(R.string.select)
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        TextField(
+            value = "$label: $currentLabel",
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { name ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = {
+                        expanded = false
+                        onSelect(name)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun settingsErrorLabel(error: SettingsError): String {
+    return when (error) {
+        SettingsError.MissingSpreadsheetId -> stringResource(R.string.settings_error_missing_id)
+        SettingsError.FetchFailed -> stringResource(R.string.settings_error_fetch_failed)
+        SettingsError.NoSheets -> stringResource(R.string.settings_error_no_sheets)
     }
 }

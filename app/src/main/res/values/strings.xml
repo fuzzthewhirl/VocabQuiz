@@ -14,8 +14,17 @@
     <string name="init_starting">Starting…</string>
     <string name="init_loading_data">Loading vocab data…</string>
     <string name="init_reading_settings">Reading settings…</string>
+    <string name="init_loading_sheets">Loading sheet list…</string>
     <string name="init_choosing_pair">Choosing language pair…</string>
     <string name="init_loading_chunk">Loading quiz chunk…</string>
     <string name="init_ready">Ready</string>
     <string name="init_error">Initialization error</string>
+    <string name="settings_spreadsheet_id">Spreadsheet ID</string>
+    <string name="settings_sheet">Sheet</string>
+    <string name="settings_refresh">Refresh</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_loading_sheets">Loading sheets…</string>
+    <string name="settings_error_missing_id">Enter a spreadsheet ID to continue.</string>
+    <string name="settings_error_fetch_failed">Could not fetch sheets. Check sign-in and network.</string>
+    <string name="settings_error_no_sheets">No sheets found for this spreadsheet.</string>
 </resources>
