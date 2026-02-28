@@ -10,6 +10,7 @@ import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class VocabRepository(
     private val context: Context
@@ -89,25 +90,26 @@ class VocabRepository(
         byPair.mapValues { it.value.size }
     }
 
-    suspend fun getSheetNames(spreadsheetId: String): List<String> = withContext(Dispatchers.IO) {
+    suspend fun getSheetNames(spreadsheetId: String): Result<List<String>> = withContext(Dispatchers.IO) {
         if (!isNetworkAvailable()) {
             Log.e("VocabRepo", "No internet connection available.")
-            return@withContext emptyList()
+            return@withContext Result.failure(IOException("No internet connection"))
         }
         val service = SheetsServiceFactory.create(context)
             ?: run {
                 Log.e("VocabRepo", "No Sheets service (not signed in?)")
-                return@withContext emptyList()
+                return@withContext Result.failure(IllegalStateException("No Sheets service"))
             }
 
         val resp = runCatching {
             service.spreadsheets().get(spreadsheetId).setFields("sheets.properties.title").execute()
         }.getOrElse { t ->
             Log.e("VocabRepo", "Sheets metadata fetch failed", t)
-            return@withContext emptyList()
+            return@withContext Result.failure(t)
         }
 
-        resp.sheets?.mapNotNull { it.properties?.title } ?: emptyList()
+        val names = resp.sheets?.mapNotNull { it.properties?.title } ?: emptyList()
+        Result.success(names)
     }
 
 

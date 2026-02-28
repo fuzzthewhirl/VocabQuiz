@@ -27,4 +27,7 @@
     <string name="settings_error_missing_id">Enter a spreadsheet ID to continue.</string>
     <string name="settings_error_fetch_failed">Could not fetch sheets. Check sign-in and network.</string>
     <string name="settings_error_no_sheets">No sheets found for this spreadsheet.</string>
+    <string name="settings_open">Open settings</string>
+    <string name="settings_last_error_time">Last error at: %1$s</string>
+    <string name="settings_last_error_message">Last error: %1$s</string>
 </resources>

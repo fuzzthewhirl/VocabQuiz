@@ -100,6 +100,12 @@ class MainActivity : ComponentActivity() {
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(top = 12.dp)
                             )
+                            Button(
+                                onClick = { screen = Screen.Settings },
+                                modifier = Modifier.padding(top = 16.dp)
+                            ) {
+                                Text(stringResource(R.string.settings_open))
+                            }
                         }
                     }
                     QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -110,6 +116,12 @@ class MainActivity : ComponentActivity() {
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(top = 12.dp)
                             )
+                            Button(
+                                onClick = { screen = Screen.Settings },
+                                modifier = Modifier.padding(top = 16.dp)
+                            ) {
+                                Text(stringResource(R.string.settings_open))
+                            }
                         }
                     }
                     QuizState.Status.Ready -> {
@@ -274,6 +286,19 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                 Text(
                     text = settingsErrorLabel(error),
                     color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            ui.lastErrorAt?.let { at ->
+                Text(
+                    text = stringResource(R.string.settings_last_error_time, at),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            ui.lastErrorMessage?.let { msg ->
+                Text(
+                    text = stringResource(R.string.settings_last_error_message, msg),
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 

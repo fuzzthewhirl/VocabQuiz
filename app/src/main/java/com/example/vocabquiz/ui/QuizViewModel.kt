@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 import kotlin.math.max
 
@@ -51,7 +53,9 @@ data class SettingsUiState(
     val sheetNames: List<String> = emptyList(),
     val selectedSheet: String? = null,
     val loading: Boolean = false,
-    val error: SettingsError? = null
+    val error: SettingsError? = null,
+    val lastErrorMessage: String? = null,
+    val lastErrorAt: String? = null
 )
 
 enum class SettingsError {
@@ -92,8 +96,18 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
             val sheetTab = if (savedSheetTab == null) {
                 _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingSheets)
-                val names = repo.getSheetNames(spreadsheetId)
+                val result = repo.getSheetNames(spreadsheetId)
+                val names = result.getOrNull().orEmpty()
+                if (result.isFailure) {
+                    recordSettingsError(SettingsError.FetchFailed, result.exceptionOrNull()?.message)
+                    _state.value = _state.value.copy(
+                        status = QuizState.Status.Error,
+                        initPhase = QuizState.InitPhase.Error
+                    )
+                    return@launch
+                }
                 if (names.isEmpty()) {
+                    recordSettingsError(SettingsError.NoSheets, null)
                     _state.value = _state.value.copy(
                         status = QuizState.Status.Error,
                         initPhase = QuizState.InitPhase.Error
@@ -180,19 +194,29 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshSheetNames() {
         val spreadsheetId = _settingsState.value.spreadsheetId.trim()
         if (spreadsheetId.isBlank()) {
-            _settingsState.value = _settingsState.value.copy(error = SettingsError.MissingSpreadsheetId)
+            recordSettingsError(SettingsError.MissingSpreadsheetId, null)
             return
         }
 
         viewModelScope.launch {
             _settingsState.value = _settingsState.value.copy(loading = true, error = null)
-            val names = repo.getSheetNames(spreadsheetId)
-            if (names.isEmpty()) {
+            val result = repo.getSheetNames(spreadsheetId)
+            val names = result.getOrNull().orEmpty()
+            if (result.isFailure) {
+                recordSettingsError(SettingsError.FetchFailed, result.exceptionOrNull()?.message)
                 _settingsState.value = _settingsState.value.copy(
                     loading = false,
                     sheetNames = emptyList(),
-                    selectedSheet = null,
-                    error = SettingsError.NoSheets
+                    selectedSheet = null
+                )
+                return@launch
+            }
+            if (names.isEmpty()) {
+                recordSettingsError(SettingsError.NoSheets, null)
+                _settingsState.value = _settingsState.value.copy(
+                    loading = false,
+                    sheetNames = emptyList(),
+                    selectedSheet = null
                 )
                 return@launch
             }
@@ -203,7 +227,9 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 loading = false,
                 sheetNames = names,
                 selectedSheet = selected,
-                error = null
+                error = null,
+                lastErrorMessage = _settingsState.value.lastErrorMessage,
+                lastErrorAt = _settingsState.value.lastErrorAt
             )
         }
     }
@@ -226,6 +252,15 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             settings.saveSheetTab(sheetTab)
             reloadData(spreadsheetId, sheetTab)
         }
+    }
+
+    private fun recordSettingsError(error: SettingsError, detail: String?) {
+        val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        _settingsState.value = _settingsState.value.copy(
+            error = error,
+            lastErrorMessage = detail,
+            lastErrorAt = timestamp
+        )
     }
 
     private suspend fun reloadData(spreadsheetId: String, sheetTab: String) {
