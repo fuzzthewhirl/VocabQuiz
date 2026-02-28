@@ -91,47 +91,47 @@ class MainActivity : ComponentActivity() {
                 val vm: QuizViewModel = viewModel()
                 val st by vm.state.collectAsState()
 
-                when (st.status) {
-                    QuizState.Status.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            Text(
-                                text = initPhaseLabel(st.initPhase),
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                            Button(
-                                onClick = { screen = Screen.Settings },
-                                modifier = Modifier.padding(top = 16.dp)
-                            ) {
-                                Text(stringResource(R.string.settings_open))
+                when (screen) {
+                    Screen.Settings -> SettingsScreen(on = vm, onBack = { screen = Screen.Main })
+                    Screen.Main -> {
+                        when (st.status) {
+                            QuizState.Status.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    CircularProgressIndicator()
+                                    Text(
+                                        text = initPhaseLabel(st.initPhase),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(top = 12.dp)
+                                    )
+                                    Button(
+                                        onClick = { screen = Screen.Settings },
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    ) {
+                                        Text(stringResource(R.string.settings_open))
+                                    }
+                                }
                             }
-                        }
-                    }
-                    QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(stringResource(R.string.no_data))
-                            Text(
-                                text = initPhaseLabel(st.initPhase),
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                            Button(
-                                onClick = { screen = Screen.Settings },
-                                modifier = Modifier.padding(top = 16.dp)
-                            ) {
-                                Text(stringResource(R.string.settings_open))
+                            QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(stringResource(R.string.no_data))
+                                    Text(
+                                        text = initPhaseLabel(st.initPhase),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(top = 12.dp)
+                                    )
+                                    Button(
+                                        onClick = { screen = Screen.Settings },
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    ) {
+                                        Text(stringResource(R.string.settings_open))
+                                    }
+                                }
                             }
-                        }
-                    }
-                    QuizState.Status.Ready -> {
-                        when (screen) {
-                            Screen.Main -> FlashcardScreen(
+                            QuizState.Status.Ready -> FlashcardScreen(
                                 st = st,
                                 on = vm,
                                 onOpenSettings = { screen = Screen.Settings }
                             )
-                            Screen.Settings -> SettingsScreen(on = vm, onBack = { screen = Screen.Main })
                         }
                     }
                 }
