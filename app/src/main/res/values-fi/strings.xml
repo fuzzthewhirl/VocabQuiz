@@ -20,16 +20,27 @@
     <string name="init_ready">Valmis</string>
     <string name="init_error">Alustuksen virhe</string>
     <string name="settings_spreadsheet_id">Taulukon ID</string>
+    <string name="settings_spreadsheet">Taulukko</string>
     <string name="settings_sheet">Välilehti</string>
     <string name="settings_refresh">Päivitä</string>
     <string name="settings_save">Tallenna</string>
+    <string name="settings_loading_spreadsheets">Ladataan taulukoita…</string>
     <string name="settings_loading_sheets">Ladataan välilehtiä…</string>
     <string name="settings_error_missing_id">Syötä taulukon ID jatkaaksesi.</string>
     <string name="settings_error_fetch_failed">Välilehtiä ei voitu hakea. Tarkista kirjautuminen ja verkko.</string>
     <string name="settings_error_no_sheets">Taulukosta ei löytynyt välilehtiä.</string>
     <string name="settings_error_data_load_failed">Välilehti ladattiin, mutta yhteensopivaa sanastoa ei löytynyt.</string>
+    <string name="settings_error_folder_missing">Drive-kansiota "VocabQuiz" ei löytynyt.</string>
+    <string name="settings_error_folder_empty">Kansiosta "VocabQuiz" ei löytynyt taulukoita.</string>
+    <string name="settings_error_drive_failed">Driveen ei saatu yhteyttä. Tarkista kirjautuminen ja verkko.</string>
+    <string name="settings_reauth">Kirjaudu uudelleen</string>
     <string name="settings_open">Avaa asetukset</string>
     <string name="settings_last_error_time">Viimeisin virhe: %1$s</string>
     <string name="settings_last_error_message">Virheen tiedot: %1$s</string>
     <string name="no_language_pairs">Tästä välilehdestä ei löytynyt kielipareja.</string>
+    <string name="sign_in_title">Kirjautuminen vaaditaan</string>
+    <string name="sign_in_message">Kirjaudu sisään käyttääksesi sanastoa.</string>
+    <string name="sign_in_loading">Avataan Google-kirjautuminen…</string>
+    <string name="sign_in_failed">Kirjautuminen epäonnistui. Yritä uudelleen.</string>
+    <string name="sign_in_retry">Yritä uudelleen</string>
 </resources>

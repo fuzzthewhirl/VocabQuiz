@@ -3,7 +3,9 @@ package com.example.vocabquiz.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vocabquiz.data.FolderNotFoundException
 import com.example.vocabquiz.data.SettingsStore
+import com.example.vocabquiz.data.SpreadsheetInfo
 import com.example.vocabquiz.data.VocabRepository
 import com.example.vocabquiz.model.Direction
 import com.example.vocabquiz.model.Lang
@@ -51,9 +53,11 @@ data class QuizState(
 
 data class SettingsUiState(
     val spreadsheetId: String,
+    val spreadsheets: List<SpreadsheetInfo> = emptyList(),
     val sheetNames: List<String> = emptyList(),
     val selectedSheet: String? = null,
-    val loading: Boolean = false,
+    val loadingSpreadsheets: Boolean = false,
+    val loadingSheets: Boolean = false,
     val error: SettingsError? = null,
     val lastErrorMessage: String? = null,
     val lastErrorAt: String? = null
@@ -63,7 +67,10 @@ enum class SettingsError {
     MissingSpreadsheetId,
     FetchFailed,
     NoSheets,
-    DataLoadFailed
+    DataLoadFailed,
+    FolderMissing,
+    FolderEmpty,
+    DriveFetchFailed
 }
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
@@ -212,14 +219,78 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
     fun onSpreadsheetIdChange(value: String) {
         _settingsState.value = _settingsState.value.copy(
             spreadsheetId = value,
+            spreadsheets = emptyList(),
             sheetNames = emptyList(),
             selectedSheet = null,
             error = null
         )
     }
 
+    fun selectSpreadsheet(info: SpreadsheetInfo) {
+        _settingsState.value = _settingsState.value.copy(
+            spreadsheetId = info.id,
+            spreadsheets = _settingsState.value.spreadsheets,
+            sheetNames = emptyList(),
+            selectedSheet = null,
+            error = null
+        )
+        refreshSheetNames()
+    }
+
     fun selectSheet(sheet: String) {
         _settingsState.value = _settingsState.value.copy(selectedSheet = sheet)
+    }
+
+    fun refreshSpreadsheets() {
+        viewModelScope.launch {
+            _settingsState.value = _settingsState.value.copy(
+                loadingSpreadsheets = true,
+                error = null
+            )
+
+            val result = repo.getSpreadsheetsInFolder(FOLDER_NAME)
+            val spreadsheets = result.getOrNull().orEmpty()
+            if (result.isFailure) {
+                val error = if (result.exceptionOrNull() is FolderNotFoundException) {
+                    SettingsError.FolderMissing
+                } else {
+                    SettingsError.DriveFetchFailed
+                }
+                recordSettingsError(error, result.exceptionOrNull()?.message)
+                _settingsState.value = _settingsState.value.copy(
+                    loadingSpreadsheets = false,
+                    spreadsheets = emptyList(),
+                    sheetNames = emptyList(),
+                    selectedSheet = null
+                )
+                return@launch
+            }
+
+            if (spreadsheets.isEmpty()) {
+                recordSettingsError(SettingsError.FolderEmpty, null)
+                _settingsState.value = _settingsState.value.copy(
+                    loadingSpreadsheets = false,
+                    spreadsheets = emptyList(),
+                    sheetNames = emptyList(),
+                    selectedSheet = null
+                )
+                return@launch
+            }
+
+            val currentId = _settingsState.value.spreadsheetId
+            val selected = spreadsheets.firstOrNull { it.id == currentId } ?: spreadsheets.first()
+
+            _settingsState.value = _settingsState.value.copy(
+                loadingSpreadsheets = false,
+                spreadsheets = spreadsheets,
+                spreadsheetId = selected.id,
+                sheetNames = emptyList(),
+                selectedSheet = null,
+                error = null
+            )
+
+            refreshSheetNames()
+        }
     }
 
     fun refreshSheetNames() {
@@ -230,13 +301,13 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         viewModelScope.launch {
-            _settingsState.value = _settingsState.value.copy(loading = true, error = null)
+            _settingsState.value = _settingsState.value.copy(loadingSheets = true, error = null)
             val result = repo.getSheetNames(spreadsheetId)
             val names = result.getOrNull().orEmpty()
             if (result.isFailure) {
                 recordSettingsError(SettingsError.FetchFailed, result.exceptionOrNull()?.message)
                 _settingsState.value = _settingsState.value.copy(
-                    loading = false,
+                    loadingSheets = false,
                     sheetNames = emptyList(),
                     selectedSheet = null
                 )
@@ -245,7 +316,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             if (names.isEmpty()) {
                 recordSettingsError(SettingsError.NoSheets, null)
                 _settingsState.value = _settingsState.value.copy(
-                    loading = false,
+                    loadingSheets = false,
                     sheetNames = emptyList(),
                     selectedSheet = null
                 )
@@ -255,7 +326,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             val current = _settingsState.value.selectedSheet
             val selected = if (current != null && names.contains(current)) current else names.first()
             _settingsState.value = _settingsState.value.copy(
-                loading = false,
+                loadingSheets = false,
                 sheetNames = names,
                 selectedSheet = selected,
                 error = null,
@@ -265,10 +336,10 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun ensureSheetNamesLoaded() {
+    fun ensureSpreadsheetsLoaded() {
         val current = _settingsState.value
-        if (current.sheetNames.isEmpty() && !current.loading) {
-            refreshSheetNames()
+        if (current.spreadsheets.isEmpty() && !current.loadingSpreadsheets) {
+            refreshSpreadsheets()
         }
     }
 
@@ -471,5 +542,6 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         private const val DEFAULT_SPREADSHEET_ID = "1HI8QRSYkGNsXvyO2Grx3o1wFe6Q9uscyfAO31Xe50QQ"
+        private const val FOLDER_NAME = "VocabQuiz"
     }
 }

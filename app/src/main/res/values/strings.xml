@@ -20,16 +20,27 @@
     <string name="init_ready">Ready</string>
     <string name="init_error">Initialization error</string>
     <string name="settings_spreadsheet_id">Spreadsheet ID</string>
+    <string name="settings_spreadsheet">Spreadsheet</string>
     <string name="settings_sheet">Sheet</string>
     <string name="settings_refresh">Refresh</string>
     <string name="settings_save">Save</string>
+    <string name="settings_loading_spreadsheets">Loading spreadsheets…</string>
     <string name="settings_loading_sheets">Loading sheets…</string>
     <string name="settings_error_missing_id">Enter a spreadsheet ID to continue.</string>
     <string name="settings_error_fetch_failed">Could not fetch sheets. Check sign-in and network.</string>
     <string name="settings_error_no_sheets">No sheets found for this spreadsheet.</string>
     <string name="settings_error_data_load_failed">Sheet loaded but no compatible vocab data found.</string>
+    <string name="settings_error_folder_missing">Drive folder "VocabQuiz" not found.</string>
+    <string name="settings_error_folder_empty">No spreadsheets found in "VocabQuiz".</string>
+    <string name="settings_error_drive_failed">Could not access Drive. Check sign-in and network.</string>
+    <string name="settings_reauth">Re-authenticate</string>
     <string name="settings_open">Open settings</string>
     <string name="settings_last_error_time">Last error at: %1$s</string>
     <string name="settings_last_error_message">Last error: %1$s</string>
     <string name="no_language_pairs">No language pairs available in this sheet.</string>
+    <string name="sign_in_title">Sign in required</string>
+    <string name="sign_in_message">Sign in to access your vocabulary.</string>
+    <string name="sign_in_loading">Opening Google Sign-In…</string>
+    <string name="sign_in_failed">Sign-in failed. Try again.</string>
+    <string name="sign_in_retry">Try again</string>
 </resources>

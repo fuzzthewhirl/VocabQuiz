@@ -1,5 +1,6 @@
 package com.example.vocabquiz.data
 
+import DriveServiceFactory
 import SheetsServiceFactory
 import android.content.Context
 import android.net.ConnectivityManager
@@ -117,6 +118,61 @@ class VocabRepository(
 
     fun availablePairs(): List<LanguagePair> = byPair.keys.sortedBy { it.toString() }
 
+    suspend fun getSpreadsheetsInFolder(folderName: String): Result<List<SpreadsheetInfo>> =
+        withContext(Dispatchers.IO) {
+            if (!isNetworkAvailable()) {
+                Log.e("VocabRepo", "No internet connection available.")
+                return@withContext Result.failure(IOException("No internet connection"))
+            }
+            val service = DriveServiceFactory.create(context)
+                ?: run {
+                    Log.e("VocabRepo", "No Drive service (not signed in?)")
+                    return@withContext Result.failure(IllegalStateException("No Drive service"))
+                }
+
+            val folderResp = runCatching {
+                service.files().list()
+                    .setQ(
+                        "mimeType='application/vnd.google-apps.folder' and name='$folderName' " +
+                            "and 'root' in parents and trashed=false"
+                    )
+                    .setFields("files(id,name)")
+                    .execute()
+            }.getOrElse { t ->
+                Log.e("VocabRepo", "Drive folder lookup failed", t)
+                return@withContext Result.failure(t)
+            }
+
+            val folderId = folderResp.files?.firstOrNull()?.id
+            if (folderId.isNullOrBlank()) {
+                return@withContext Result.failure(FolderNotFoundException(folderName))
+            }
+
+            val filesResp = runCatching {
+                service.files().list()
+                    .setQ(
+                        "mimeType='application/vnd.google-apps.spreadsheet' and '$folderId' in parents " +
+                            "and trashed=false"
+                    )
+                    .setFields("files(id,name)")
+                    .execute()
+            }.getOrElse { t ->
+                Log.e("VocabRepo", "Drive spreadsheet list failed", t)
+                return@withContext Result.failure(t)
+            }
+
+            val spreadsheets = filesResp.files
+                ?.mapNotNull { file ->
+                    val id = file.id
+                    val name = file.name
+                    if (id.isNullOrBlank() || name.isNullOrBlank()) null else SpreadsheetInfo(id, name)
+                }
+                .orEmpty()
+                .sortedBy { it.name.lowercase() }
+
+            Result.success(spreadsheets)
+        }
+
     fun getChunk(pair: LanguagePair, offset: Int, size: Int): List<Vocab> {
         val list = byPair[pair].orEmpty()
         if (list.isEmpty() || offset >= list.size) return emptyList()
@@ -129,3 +185,10 @@ class VocabRepository(
         if (t != null) Log.e("VocabRepo", msg, t) else Log.e("VocabRepo", msg)
     }
 }
+
+data class SpreadsheetInfo(
+    val id: String,
+    val name: String
+)
+
+class FolderNotFoundException(folderName: String) : Exception("Folder not found: $folderName")

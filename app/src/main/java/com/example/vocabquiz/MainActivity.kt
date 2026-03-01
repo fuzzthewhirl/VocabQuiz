@@ -50,12 +50,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vocabquiz.data.SpreadsheetInfo
 import com.example.vocabquiz.model.Lang
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
 import com.example.vocabquiz.ui.QuizViewModel
 import com.example.vocabquiz.ui.SettingsError
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.Scope
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -64,6 +66,7 @@ import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.example.vocabquiz.ui.theme.VocabQuizTheme
+import android.app.Activity
 
 private enum class Screen {
     Main,
@@ -75,7 +78,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (GoogleSignIn.getLastSignedInAccount(this) == null) {
+        val acct = GoogleSignIn.getLastSignedInAccount(this)
+        val sheetsScope = Scope("https://www.googleapis.com/auth/spreadsheets.readonly")
+        val driveScope = Scope("https://www.googleapis.com/auth/drive.readonly")
+
+        if (acct == null || !GoogleSignIn.hasPermissions(acct, sheetsScope, driveScope)) {
             startActivity(Intent(this, SignInActivity::class.java))
             finish()
             return
@@ -241,9 +248,10 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
 @Composable
 private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
     val ui by on.settingsState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        on.ensureSheetNamesLoaded()
+        on.ensureSpreadsheetsLoaded()
     }
 
     Scaffold(
@@ -258,22 +266,34 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
+            Text(stringResource(R.string.settings_spreadsheet), style = MaterialTheme.typography.labelLarge)
+            if (ui.spreadsheets.isNotEmpty()) {
+                SpreadsheetDropdown(
+                    label = stringResource(R.string.settings_spreadsheet),
+                    items = ui.spreadsheets,
+                    selectedId = ui.spreadsheetId,
+                    onSelect = { on.selectSpreadsheet(it) }
+                )
+            }
+
             Text(stringResource(R.string.settings_spreadsheet_id), style = MaterialTheme.typography.labelLarge)
-            TextField(
-                value = ui.spreadsheetId,
-                onValueChange = { on.onSpreadsheetIdChange(it) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = ui.spreadsheetId,
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(onClick = { on.refreshSheetNames() }) {
+                OutlinedButton(onClick = { on.refreshSpreadsheets() }) {
                     Text(stringResource(R.string.settings_refresh))
                 }
-                if (ui.loading) {
+                if (ui.loadingSpreadsheets) {
+                    CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
+                    Text(stringResource(R.string.settings_loading_spreadsheets))
+                }
+                if (ui.loadingSheets) {
                     CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
                     Text(stringResource(R.string.settings_loading_sheets))
                 }
@@ -284,6 +304,14 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                     text = settingsErrorLabel(error),
                     color = MaterialTheme.colorScheme.error
                 )
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(context, SignInActivity::class.java))
+                        (context as? Activity)?.finish()
+                    }
+                ) {
+                    Text(stringResource(R.string.settings_reauth))
+                }
             }
 
             ui.lastErrorAt?.let { at ->
@@ -312,7 +340,12 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val canSave = ui.spreadsheetId.isNotBlank() && ui.selectedSheet != null && !ui.loading
+                val canSave =
+                    ui.spreadsheetId.isNotBlank() &&
+                        ui.selectedSheet != null &&
+                        !ui.loadingSheets &&
+                        !ui.loadingSpreadsheets &&
+                        ui.spreadsheets.isNotEmpty()
                 Button(
                     onClick = { on.saveSettingsAndReload(); onBack() },
                     enabled = canSave
@@ -470,6 +503,40 @@ private fun SheetDropdown(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SpreadsheetDropdown(
+    label: String,
+    items: List<SpreadsheetInfo>,
+    selectedId: String,
+    onSelect: (SpreadsheetInfo) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = items.firstOrNull { it.id == selectedId }
+    val currentLabel = selected?.name ?: stringResource(R.string.select)
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        TextField(
+            value = "$label: $currentLabel",
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { info ->
+                DropdownMenuItem(
+                    text = { Text(info.name) },
+                    onClick = {
+                        expanded = false
+                        onSelect(info)
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun settingsErrorLabel(error: SettingsError): String {
     return when (error) {
@@ -477,5 +544,8 @@ private fun settingsErrorLabel(error: SettingsError): String {
         SettingsError.FetchFailed -> stringResource(R.string.settings_error_fetch_failed)
         SettingsError.NoSheets -> stringResource(R.string.settings_error_no_sheets)
         SettingsError.DataLoadFailed -> stringResource(R.string.settings_error_data_load_failed)
+        SettingsError.FolderMissing -> stringResource(R.string.settings_error_folder_missing)
+        SettingsError.FolderEmpty -> stringResource(R.string.settings_error_folder_empty)
+        SettingsError.DriveFetchFailed -> stringResource(R.string.settings_error_drive_failed)
     }
 }

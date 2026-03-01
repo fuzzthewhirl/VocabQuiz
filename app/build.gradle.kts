@@ -96,6 +96,7 @@ dependencies {
     implementation("com.google.api-client:google-api-client-android:1.31.5")
     implementation("com.google.api-client:google-api-client-gson:1.31.5")
     implementation("com.google.apis:google-api-services-sheets:v4-rev612-1.25.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20210612-1.31.5")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
