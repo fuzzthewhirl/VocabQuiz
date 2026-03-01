@@ -31,4 +31,5 @@
     <string name="settings_open">Avaa asetukset</string>
     <string name="settings_last_error_time">Viimeisin virhe: %1$s</string>
     <string name="settings_last_error_message">Virheen tiedot: %1$s</string>
+    <string name="no_language_pairs">Tästä välilehdestä ei löytynyt kielipareja.</string>
 </resources>

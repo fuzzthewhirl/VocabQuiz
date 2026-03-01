@@ -31,4 +31,5 @@
     <string name="settings_open">Open settings</string>
     <string name="settings_last_error_time">Last error at: %1$s</string>
     <string name="settings_last_error_message">Last error: %1$s</string>
+    <string name="no_language_pairs">No language pairs available in this sheet.</string>
 </resources>

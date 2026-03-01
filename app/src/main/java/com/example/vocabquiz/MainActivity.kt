@@ -145,16 +145,6 @@ class MainActivity : ComponentActivity() {
 fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit) {
     val outerScroll = rememberScrollState()
 
-    // All possible ordered pairs
-    val pairs = listOf(
-        LanguagePair("fi", "es"),
-        LanguagePair("es", "fi"),
-        LanguagePair("en", "es"),
-        LanguagePair("es", "en"),
-        LanguagePair("fi", "en"),
-        LanguagePair("en", "fi"),
-    )
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -200,16 +190,23 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 🔽 Single dropdown for pair selection
-            PairDropdown(
-                label = stringResource(R.string.language_pair),
-                items = pairs,
-                selected = st.currentPair(),
-                onSelect = { pair ->
-                    val src = Lang.valueOf(pair.src.uppercase())
-                    val tgt = Lang.valueOf(pair.tgt.uppercase())
-                    on.setLangs(src, tgt)
-                }
-            )
+            if (st.availablePairs.isNotEmpty()) {
+                PairDropdown(
+                    label = stringResource(R.string.language_pair),
+                    items = st.availablePairs,
+                    selected = st.currentPair(),
+                    onSelect = { pair ->
+                        val src = Lang.valueOf(pair.src.uppercase())
+                        val tgt = Lang.valueOf(pair.tgt.uppercase())
+                        on.setLangs(src, tgt)
+                    }
+                )
+            } else {
+                Text(
+                    stringResource(R.string.no_language_pairs),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
 
             // Progress
             Text("${st.index + 1} / ${st.pool.size}", style = MaterialTheme.typography.labelLarge)

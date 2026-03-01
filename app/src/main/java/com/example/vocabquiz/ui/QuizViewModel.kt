@@ -30,6 +30,7 @@ data class QuizState(
     val pageSize: Int = 10, // <= 10-word chunks
 
     val pool: List<Vocab> = emptyList(),
+    val availablePairs: List<LanguagePair> = emptyList(),
     val index: Int = 0,
     val promptText: String = "",
     val answerText: String = "",
@@ -163,7 +164,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
             _state.value = _state.value.copy(
                 sourceLang = Lang.valueOf(pair.src.uppercase()),
-                targetLang = Lang.valueOf(pair.tgt.uppercase())
+                targetLang = Lang.valueOf(pair.tgt.uppercase()),
+                availablePairs = availablePairs
             )
 
             val total = repo.pairSize(pair)
@@ -189,6 +191,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
     fun setLangs(src: Lang, tgt: Lang) {
         if (src == tgt) return
         val pair = LanguagePair(src.code, tgt.code)
+        if (!_state.value.availablePairs.contains(pair)) return
 
         viewModelScope.launch {
             // randomize a fresh page whenever pair changes
@@ -338,7 +341,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
         _state.value = _state.value.copy(
             sourceLang = Lang.valueOf(pair.src.uppercase()),
-            targetLang = Lang.valueOf(pair.tgt.uppercase())
+            targetLang = Lang.valueOf(pair.tgt.uppercase()),
+            availablePairs = availablePairs
         )
 
         val total = repo.pairSize(pair)
