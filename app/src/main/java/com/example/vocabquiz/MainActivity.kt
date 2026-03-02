@@ -6,6 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -186,58 +194,71 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
             }
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
-                .systemBarsPadding()
-                .imePadding()
-                .padding(20.dp)
-                .verticalScroll(outerScroll),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🔽 Single dropdown for pair selection
-            if (st.availablePairs.isNotEmpty()) {
-                PairDropdown(
-                    label = stringResource(R.string.language_pair),
-                    items = st.availablePairs,
-                    selected = st.currentPair(),
-                    onSelect = { pair ->
-                        on.setLangs(pair.src, pair.tgt)
-                    }
-                )
-            } else {
-                Text(
-                    stringResource(R.string.no_language_pairs),
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-
-            // Progress
-            Text("${st.index + 1} / ${st.pool.size}", style = MaterialTheme.typography.labelLarge)
-
-            // Prompt
-            Text(
-                st.promptText,
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            )
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .imePadding()
+                    .padding(20.dp)
+                    .verticalScroll(outerScroll),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 🔽 Single dropdown for pair selection
+                if (st.availablePairs.isNotEmpty()) {
+                    PairDropdown(
+                        label = stringResource(R.string.language_pair),
+                        items = st.availablePairs,
+                        selected = st.currentPair(),
+                        onSelect = { pair ->
+                            on.setLangs(pair.src, pair.tgt)
+                        }
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.no_language_pairs),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
 
-            // Answer bubble (tap to reveal / advance)
-            AnswerBubble(
-                st = st,
-                onNext = { on.nextCard() },
-                onToggleReveal = { on.toggleReveal() }
-            )
+                // Progress
+                AssistChip(
+                    onClick = {},
+                    label = { Text("${st.index + 1} / ${st.pool.size}") },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
 
-            // Card paging
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { on.prevCard() }) { Text(stringResource(R.string.prev)) }
-                Button(onClick = { on.nextCard() }) { Text(stringResource(R.string.next)) }
+                // Prompt
+                Text(
+                    st.promptText,
+                    style = MaterialTheme.typography.headlineMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
+
+                // Answer bubble (tap to reveal / advance)
+                AnswerBubble(
+                    st = st,
+                    onNext = { on.nextCard() },
+                    onToggleReveal = { on.toggleReveal() }
+                )
+
+                // Card paging
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { on.prevCard() }) { Text(stringResource(R.string.prev)) }
+                    Button(onClick = { on.nextCard() }) { Text(stringResource(R.string.next)) }
+                }
             }
         }
     }
@@ -256,125 +277,177 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings)) }) }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
-                .systemBarsPadding()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
         ) {
-            Text(stringResource(R.string.settings_spreadsheet), style = MaterialTheme.typography.labelLarge)
-            if (ui.spreadsheets.isNotEmpty()) {
-                SpreadsheetDropdown(
-                    label = stringResource(R.string.settings_spreadsheet),
-                    items = ui.spreadsheets,
-                    selectedId = ui.spreadsheetId,
-                    onSelect = { on.selectSpreadsheet(it) }
-                )
-            }
-
-            Text(stringResource(R.string.settings_spreadsheet_id), style = MaterialTheme.typography.labelLarge)
-            Text(
-                text = ui.spreadsheetId,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedButton(onClick = { on.refreshSpreadsheets() }) {
-                    Text(stringResource(R.string.settings_refresh))
-                }
-                if (ui.loadingSpreadsheets) {
-                    CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
-                    Text(stringResource(R.string.settings_loading_spreadsheets))
-                }
-                if (ui.loadingSheets) {
-                    CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
-                    Text(stringResource(R.string.settings_loading_sheets))
-                }
-            }
-
-            ui.error?.let { error ->
-                Text(
-                    text = settingsErrorLabel(error),
-                    color = MaterialTheme.colorScheme.error
-                )
-                OutlinedButton(
-                    onClick = {
-                        context.startActivity(Intent(context, SignInActivity::class.java))
-                        (context as? Activity)?.finish()
-                    }
-                ) {
-                    Text(stringResource(R.string.settings_reauth))
-                }
-            }
-
-            ui.lastErrorAt?.let { at ->
-                Text(
-                    text = stringResource(R.string.settings_last_error_time, at),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            ui.lastErrorMessage?.let { msg ->
-                Text(
-                    text = stringResource(R.string.settings_last_error_message, msg),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            if (ui.sheetNames.isNotEmpty()) {
-                SheetDropdown(
-                    label = stringResource(R.string.settings_sheet),
-                    items = ui.sheetNames,
-                    selected = ui.selectedSheet,
-                    onSelect = { on.selectSheet(it) }
-                )
-            }
-
-            Text(stringResource(R.string.settings_supported_languages_label), style = MaterialTheme.typography.labelLarge)
-            Text(
-                text = stringResource(R.string.settings_supported_languages_hint),
-                style = MaterialTheme.typography.bodySmall
-            )
-            val supportedText = remember {
-                LanguageCatalog.supportedLanguageNames().joinToString(separator = "\n")
-            }
-            val supportedScroll = rememberScrollState()
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 80.dp, max = 200.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
-                    .padding(12.dp)
-                    .verticalScroll(supportedScroll)
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Text(
-                    text = supportedText,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val canSave =
-                    ui.spreadsheetId.isNotBlank() &&
-                        ui.selectedSheet != null &&
-                        !ui.loadingSheets &&
-                        !ui.loadingSpreadsheets &&
-                        ui.spreadsheets.isNotEmpty()
-                Button(
-                    onClick = { on.saveSettingsAndReload(); onBack() },
-                    enabled = canSave
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 1.dp,
+                    color = MaterialTheme.colorScheme.surface
                 ) {
-                    Text(stringResource(R.string.settings_save))
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(stringResource(R.string.settings_spreadsheet), style = MaterialTheme.typography.labelLarge)
+                        if (ui.spreadsheets.isNotEmpty()) {
+                            SpreadsheetDropdown(
+                                label = stringResource(R.string.settings_spreadsheet),
+                                items = ui.spreadsheets,
+                                selectedId = ui.spreadsheetId,
+                                onSelect = { on.selectSpreadsheet(it) }
+                            )
+                        }
+
+                        Text(stringResource(R.string.settings_spreadsheet_id), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            text = ui.spreadsheetId,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(onClick = { on.refreshSpreadsheets() }) {
+                                Text(stringResource(R.string.settings_refresh))
+                            }
+                            if (ui.loadingSpreadsheets) {
+                                CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
+                                Text(stringResource(R.string.settings_loading_spreadsheets))
+                            }
+                            if (ui.loadingSheets) {
+                                CircularProgressIndicator(modifier = Modifier.heightIn(max = 20.dp), strokeWidth = 2.dp)
+                                Text(stringResource(R.string.settings_loading_sheets))
+                            }
+                        }
+                    }
                 }
-                OutlinedButton(onClick = onBack) { Text(stringResource(R.string.back)) }
+
+                if (ui.sheetNames.isNotEmpty()) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        tonalElevation = 1.dp,
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            SheetDropdown(
+                                label = stringResource(R.string.settings_sheet),
+                                items = ui.sheetNames,
+                                selected = ui.selectedSheet,
+                                onSelect = { on.selectSheet(it) }
+                            )
+                        }
+                    }
+                }
+
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 1.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(stringResource(R.string.settings_supported_languages_label), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            text = stringResource(R.string.settings_supported_languages_hint),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        val supportedText = remember {
+                            LanguageCatalog.supportedLanguageNames().joinToString(separator = "\n")
+                        }
+                        val supportedScroll = rememberScrollState()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 80.dp, max = 200.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(12.dp)
+                                .verticalScroll(supportedScroll)
+                        ) {
+                            Text(
+                                text = supportedText,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
+                ui.error?.let { error ->
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        tonalElevation = 1.dp,
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = settingsErrorLabel(error),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            OutlinedButton(
+                                onClick = {
+                                    context.startActivity(Intent(context, SignInActivity::class.java))
+                                    (context as? Activity)?.finish()
+                                }
+                            ) {
+                                Text(stringResource(R.string.settings_reauth))
+                            }
+                        }
+                    }
+                }
+
+                ui.lastErrorAt?.let { at ->
+                    Text(
+                        text = stringResource(R.string.settings_last_error_time, at),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                ui.lastErrorMessage?.let { msg ->
+                    Text(
+                        text = stringResource(R.string.settings_last_error_message, msg),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val canSave =
+                        ui.spreadsheetId.isNotBlank() &&
+                            ui.selectedSheet != null &&
+                            !ui.loadingSheets &&
+                            !ui.loadingSpreadsheets &&
+                            ui.spreadsheets.isNotEmpty()
+                    Button(
+                        onClick = { on.saveSettingsAndReload(); onBack() },
+                        enabled = canSave
+                    ) {
+                        Text(stringResource(R.string.settings_save))
+                    }
+                    OutlinedButton(onClick = onBack) { Text(stringResource(R.string.back)) }
+                }
             }
         }
     }
@@ -396,6 +469,7 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
             .fillMaxWidth()
             .heightIn(min = 80.dp, max = 220.dp)
             .padding(horizontal = 8.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.large)
             .combinedClickable(
                 onClick = { if (st.revealed) onNext() else onToggleReveal() },
                 onLongClick = {
@@ -418,7 +492,11 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
                 .verticalScroll(innerScroll),
             contentAlignment = Alignment.Center
         ) {
-            if (st.revealed) {
+            AnimatedVisibility(
+                visible = st.revealed,
+                enter = fadeIn() + scaleIn(initialScale = 0.99f),
+                exit = fadeOut() + scaleOut(targetScale = 0.99f)
+            ) {
                 Text(
                     st.answerText,
                     style = MaterialTheme.typography.headlineSmall,
@@ -427,7 +505,12 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
                     softWrap = true,
                     modifier = Modifier.padding(16.dp)
                 )
-            } else {
+            }
+            AnimatedVisibility(
+                visible = !st.revealed,
+                enter = fadeIn() + scaleIn(initialScale = 0.99f),
+                exit = fadeOut() + scaleOut(targetScale = 0.99f)
+            ) {
                 Text(
                     stringResource(R.string.tap_to_reveal),
                     style = MaterialTheme.typography.titleMedium,
