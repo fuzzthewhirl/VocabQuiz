@@ -216,16 +216,6 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun onSpreadsheetIdChange(value: String) {
-        _settingsState.value = _settingsState.value.copy(
-            spreadsheetId = value,
-            spreadsheets = emptyList(),
-            sheetNames = emptyList(),
-            selectedSheet = null,
-            error = null
-        )
-    }
-
     fun selectSpreadsheet(info: SpreadsheetInfo) {
         _settingsState.value = _settingsState.value.copy(
             spreadsheetId = info.id,
