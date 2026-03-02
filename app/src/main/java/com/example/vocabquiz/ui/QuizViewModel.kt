@@ -8,7 +8,7 @@ import com.example.vocabquiz.data.SettingsStore
 import com.example.vocabquiz.data.SpreadsheetInfo
 import com.example.vocabquiz.data.VocabRepository
 import com.example.vocabquiz.model.Direction
-import com.example.vocabquiz.model.Lang
+import com.example.vocabquiz.model.LanguageCatalog
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,8 +24,8 @@ import kotlin.math.max
 data class QuizState(
     val status: Status = Status.Loading,
     val initPhase: InitPhase = InitPhase.Starting,
-    val sourceLang: Lang? = null,
-    val targetLang: Lang? = null,
+    val sourceLang: String? = null,
+    val targetLang: String? = null,
     val direction: Direction = Direction.SRC_TO_TGT,
 
     val pageOffset: Int = 0,
@@ -156,8 +156,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
-            val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> null }
-            val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> null }
+            val startSrc = LanguageCatalog.normalize(snap.src)
+            val startTgt = LanguageCatalog.normalize(snap.tgt)
             val desiredPair = if (startSrc != null && startTgt != null) {
                 LanguagePair(startSrc, startTgt)
             } else {
@@ -170,8 +170,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             _state.value = _state.value.copy(
-                sourceLang = Lang.valueOf(pair.src.uppercase()),
-                targetLang = Lang.valueOf(pair.tgt.uppercase()),
+                sourceLang = pair.src,
+                targetLang = pair.tgt,
                 availablePairs = availablePairs
             )
 
@@ -195,9 +195,9 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setLangs(src: Lang, tgt: Lang) {
+    fun setLangs(src: String, tgt: String) {
         if (src == tgt) return
-        val pair = LanguagePair(src.code, tgt.code)
+        val pair = LanguagePair(src, tgt)
         if (!_state.value.availablePairs.contains(pair)) return
 
         viewModelScope.launch {
@@ -207,7 +207,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             val maxStart = max(0, total - size)
             val randomOffset = if (total <= 0) 0 else Random.nextInt(0, maxStart + 1)
 
-            settings.savePair(src.code, tgt.code)
+            settings.savePair(src, tgt)
             settings.saveOffset(randomOffset)
             settings.saveIndex(0)
 
@@ -397,8 +397,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         val snap = withTimeoutOrNull(1500) { settings.snapshot.first() } ?: SettingsStore.Snapshot()
 
         _state.value = _state.value.copy(initPhase = QuizState.InitPhase.ChoosingPair)
-        val startSrc = when (snap.src) { "fi","es","en" -> snap.src else -> null }
-        val startTgt = when (snap.tgt) { "fi","es","en" -> snap.tgt else -> null }
+        val startSrc = LanguageCatalog.normalize(snap.src)
+        val startTgt = LanguageCatalog.normalize(snap.tgt)
         val desiredPair = if (startSrc != null && startTgt != null) {
             LanguagePair(startSrc, startTgt)
         } else {
@@ -411,8 +411,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         _state.value = _state.value.copy(
-            sourceLang = Lang.valueOf(pair.src.uppercase()),
-            targetLang = Lang.valueOf(pair.tgt.uppercase()),
+            sourceLang = pair.src,
+            targetLang = pair.tgt,
             availablePairs = availablePairs
         )
 
@@ -485,7 +485,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value
         val src = s.sourceLang ?: return null
         val tgt = s.targetLang ?: return null
-        return LanguagePair(src.code, tgt.code)
+        return LanguagePair(src, tgt)
     }
 
     // now accepts desiredIndex (will be clamped to chunk size)

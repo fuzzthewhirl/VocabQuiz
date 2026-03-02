@@ -51,7 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.data.SpreadsheetInfo
-import com.example.vocabquiz.model.Lang
+import com.example.vocabquiz.model.LanguageCatalog
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
 import com.example.vocabquiz.ui.QuizViewModel
@@ -59,6 +59,7 @@ import com.example.vocabquiz.ui.SettingsError
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -203,9 +204,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                     items = st.availablePairs,
                     selected = st.currentPair(),
                     onSelect = { pair ->
-                        val src = Lang.valueOf(pair.src.uppercase())
-                        val tgt = Lang.valueOf(pair.tgt.uppercase())
-                        on.setLangs(src, tgt)
+                        on.setLangs(pair.src, pair.tgt)
                     }
                 )
             } else {
@@ -336,6 +335,29 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                 )
             }
 
+            Text(stringResource(R.string.settings_supported_languages_label), style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(R.string.settings_supported_languages_hint),
+                style = MaterialTheme.typography.bodySmall
+            )
+            val supportedText = remember {
+                LanguageCatalog.supportedLanguageNames().joinToString(separator = "\n")
+            }
+            val supportedScroll = rememberScrollState()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 80.dp, max = 200.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                    .padding(12.dp)
+                    .verticalScroll(supportedScroll)
+            ) {
+                Text(
+                    text = supportedText,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -420,7 +442,7 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
 fun QuizState.currentPair(): LanguagePair? {
     val src = sourceLang ?: return null
     val tgt = targetLang ?: return null
-    return LanguagePair(src.code, tgt.code)
+    return LanguagePair(src, tgt)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

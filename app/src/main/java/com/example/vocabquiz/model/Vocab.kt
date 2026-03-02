@@ -3,6 +3,6 @@ package com.example.vocabquiz.model
 data class Vocab(
     val source: String,
     val target: String,
-    val srcLang: String?, // normalized code like "fi", "es", "en"
+    val srcLang: String?, // canonical language name (e.g. "English")
     val tgtLang: String?
 )

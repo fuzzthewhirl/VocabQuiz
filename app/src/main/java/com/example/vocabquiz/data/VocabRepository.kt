@@ -6,7 +6,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import com.example.vocabquiz.model.Lang
+import com.example.vocabquiz.model.LanguageCatalog
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +56,7 @@ class VocabRepository(
 
         // A:srcLangName, B:tgtLangName, C:sourceWord, D:targetWord
         fun norm(s: Any?) = s?.toString()?.trim().orEmpty()
-        fun normLangName(s: Any?): String? = Lang.Companion.normalize(norm(s))
+        fun normLangName(s: Any?): String? = LanguageCatalog.normalize(norm(s))
 
         all = rows.mapNotNull { r ->
             val srcLang = normLangName(r.getOrNull(0))
@@ -75,11 +75,9 @@ class VocabRepository(
             )
         }
 
-        // Keep only fi/es/en and exclude same-language pairs
-        val allowed = setOf("fi", "es", "en")
+        // Exclude same-language pairs
         val before = all.size
-        all =
-            all.filter { it.srcLang in allowed && it.tgtLang in allowed && it.srcLang != it.tgtLang }
+        all = all.filter { it.srcLang != null && it.tgtLang != null && it.srcLang != it.tgtLang }
         Log.d(
             "VocabRepo",
             "Parsed $before rows, kept ${all.size} after lang filter (tab=$sheetTab)"
