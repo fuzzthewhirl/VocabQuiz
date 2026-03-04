@@ -4,6 +4,8 @@ package com.example.vocabquiz
 
 import android.content.Intent
 import android.os.Bundle
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -42,6 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +60,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.data.SpreadsheetInfo
 import com.example.vocabquiz.model.LanguageCatalog
@@ -66,6 +72,7 @@ import com.example.vocabquiz.ui.QuizViewModel
 import com.example.vocabquiz.ui.SettingsError
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
+import java.net.URLEncoder
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -160,6 +167,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit) {
     val outerScroll = rememberScrollState()
+    val context = LocalContext.current
+    var translateUrl by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -254,14 +263,76 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                     onToggleReveal = { on.toggleReveal() }
                 )
 
-                // Card paging
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { on.prevCard() }) { Text(stringResource(R.string.prev)) }
-                    Button(onClick = { on.nextCard() }) { Text(stringResource(R.string.next)) }
+            // Card paging
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { on.prevCard() }) { Text(stringResource(R.string.prev)) }
+                Button(onClick = { on.nextCard() }) { Text(stringResource(R.string.next)) }
+            }
+
+            val translateText = if (st.revealed) st.answerText else st.promptText
+            val canTranslate = st.pool.isNotEmpty() && translateText.isNotBlank()
+            OutlinedButton(
+                enabled = canTranslate,
+                onClick = {
+                    val pair = st.currentPair() ?: return@OutlinedButton
+                    val sourceName = if (st.revealed) pair.tgt else pair.src
+                    val targetName = if (st.revealed) pair.src else pair.tgt
+                    val sourceCode = LanguageCatalog.toTranslateCode(sourceName) ?: "auto"
+                    val targetCode = LanguageCatalog.toTranslateCode(targetName) ?: return@OutlinedButton
+                    val encoded = URLEncoder.encode(translateText, "UTF-8")
+                    translateUrl = "https://translate.google.com/?sl=$sourceCode&tl=$targetCode&text=$encoded&op=translate"
+                }
+            ) {
+                Text(stringResource(R.string.translate_open))
+            }
+            val hintText = remember(translateText) {
+                val max = 32
+                if (translateText.length <= max) translateText else translateText.take(max) + "..."
+            }
+            Text(
+                text = stringResource(R.string.translate_hint, hintText),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    translateUrl?.let { url ->
+        Dialog(
+            onDismissRequest = { translateUrl = null },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Column(Modifier.fillMaxSize()) {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.translate_title)) },
+                        navigationIcon = {
+                            TextButton(onClick = { translateUrl = null }) {
+                                Text(stringResource(R.string.translate_close))
+                            }
+                        }
+                    )
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { ctx ->
+                            WebView(ctx).apply {
+                                settings.javaScriptEnabled = true
+                                settings.domStorageEnabled = true
+                                webViewClient = WebViewClient()
+                            }
+                        },
+                        update = { view ->
+                            view.loadUrl(url)
+                        }
+                    )
                 }
             }
         }
     }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

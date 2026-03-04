@@ -45,4 +45,8 @@
     <string name="sign_in_loading">Avataan Google-kirjautuminen…</string>
     <string name="sign_in_failed">Kirjautuminen epäonnistui. Yritä uudelleen.</string>
     <string name="sign_in_retry">Yritä uudelleen</string>
+    <string name="translate_open">Avaa Google-kääntäjässä</string>
+    <string name="translate_hint">Avautuu: %1$s</string>
+    <string name="translate_title">Google-kääntäjä</string>
+    <string name="translate_close">Sulje</string>
 </resources>

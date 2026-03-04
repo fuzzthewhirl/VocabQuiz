@@ -45,4 +45,8 @@
     <string name="sign_in_loading">Opening Google Sign-In…</string>
     <string name="sign_in_failed">Sign-in failed. Try again.</string>
     <string name="sign_in_retry">Try again</string>
+    <string name="translate_open">Open in Google Translate</string>
+    <string name="translate_hint">Opens: %1$s</string>
+    <string name="translate_title">Google Translate</string>
+    <string name="translate_close">Close</string>
 </resources>
