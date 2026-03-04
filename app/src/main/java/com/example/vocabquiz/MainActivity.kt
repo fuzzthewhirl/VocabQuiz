@@ -2,6 +2,7 @@
 
 package com.example.vocabquiz
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.webkit.WebView
@@ -167,7 +168,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit) {
     val outerScroll = rememberScrollState()
-    val context = LocalContext.current
     var translateUrl by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
@@ -319,6 +319,7 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                         modifier = Modifier.fillMaxSize(),
                         factory = { ctx ->
                             WebView(ctx).apply {
+                                @SuppressLint("SetJavaScriptEnabled")
                                 settings.javaScriptEnabled = true
                                 settings.domStorageEnabled = true
                                 webViewClient = WebViewClient()
