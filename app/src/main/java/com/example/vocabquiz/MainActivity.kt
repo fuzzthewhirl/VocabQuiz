@@ -383,12 +383,6 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                             )
                         }
 
-                        Text(stringResource(R.string.settings_spreadsheet_id), style = MaterialTheme.typography.labelLarge)
-                        Text(
-                            text = ui.spreadsheetId,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically

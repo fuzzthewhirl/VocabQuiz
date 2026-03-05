@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.vocabquiz.data.FolderNotFoundException
 import com.example.vocabquiz.data.SettingsStore
 import com.example.vocabquiz.data.SpreadsheetInfo
+import android.util.Log
 import com.example.vocabquiz.data.VocabRepository
 import com.example.vocabquiz.model.Direction
 import com.example.vocabquiz.model.LanguageCatalog
@@ -217,6 +218,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun selectSpreadsheet(info: SpreadsheetInfo) {
+        Log.d("QuizVM", "Selected spreadsheet id=${info.id}")
         _settingsState.value = _settingsState.value.copy(
             spreadsheetId = info.id,
             spreadsheets = _settingsState.value.spreadsheets,
@@ -269,6 +271,8 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
             val currentId = _settingsState.value.spreadsheetId
             val selected = spreadsheets.firstOrNull { it.id == currentId } ?: spreadsheets.first()
+
+            Log.d("QuizVM", "Loaded spreadsheets, using id=${selected.id}")
 
             _settingsState.value = _settingsState.value.copy(
                 loadingSpreadsheets = false,
@@ -433,7 +437,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
         val newOffset = s.pageOffset + s.pageSize
         if (newOffset >= total) {
-            android.util.Log.d("QuizVM", "No next chunk for $pair (total=$total)")
+            Log.d("QuizVM", "No next chunk for $pair (total=$total)")
             return
         }
 
@@ -492,7 +496,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 val size = _state.value.pageSize
                 val chunk = repo.getChunk(pair, offset, size)
                 if (chunk.isEmpty()) {
-                    android.util.Log.d("QuizVM", "Empty chunk at offset=$offset for $pair")
+                Log.d("QuizVM", "Empty chunk at offset=$offset for $pair")
                     recordSettingsError(
                         SettingsError.DataLoadFailed,
                         "No data for pair ${pair.src}-${pair.tgt}"
@@ -503,7 +507,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                     )
                     return@launch
                 }
-                android.util.Log.d("QuizVM", "Chunk with direction=$direction for $pair")
+                Log.d("QuizVM", "Chunk with direction=$direction for $pair")
                 _state.value = _state.value.copy(
                     status = QuizState.Status.Ready,
                     initPhase = QuizState.InitPhase.Ready,
