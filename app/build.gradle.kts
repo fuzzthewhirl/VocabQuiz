@@ -67,6 +67,17 @@ android {
     }
 }
 
+android {
+    applicationVariants.all {
+        val variantName = name
+        val version = versionName ?: "0.0.0"
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "VocabQuiz-$version-$variantName.apk"
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
