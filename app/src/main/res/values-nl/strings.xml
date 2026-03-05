@@ -52,4 +52,5 @@
     <string name="translate_close">Sluiten</string>
     <string name="settings_ui_language_label">Interfacetaal</string>
     <string name="settings_ui_language_system_default">Systeemstandaard</string>
+    <string name="settings_app_version_label">App-versie:</string>
 </resources>

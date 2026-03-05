@@ -52,4 +52,5 @@
     <string name="translate_close">Închide</string>
     <string name="settings_ui_language_label">Limba interfeței</string>
     <string name="settings_ui_language_system_default">Implicit de sistem</string>
+    <string name="settings_app_version_label">Versiunea aplicației:</string>
 </resources>

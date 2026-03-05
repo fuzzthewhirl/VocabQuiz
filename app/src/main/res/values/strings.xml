@@ -39,6 +39,7 @@
     <string name="settings_last_error_message">Last error: %1$s</string>
     <string name="settings_supported_languages_label">Supported languages</string>
     <string name="settings_supported_languages_hint">Use these names in sheet columns A and B.</string>
+    <string name="settings_app_version_label">Application version:</string>
     <string name="settings_ui_language_label">UI language</string>
     <string name="settings_ui_language_system_default">System default</string>
     <string name="no_language_pairs">No language pairs available in this sheet.</string>

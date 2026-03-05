@@ -50,6 +50,7 @@
     <string name="translate_hint">Ouvre : %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Fermer</string>
-    <string name="settings_ui_language_label">Langue de l\'interface</string>
+    <string name="settings_ui_language_label">Langue de l’interface</string>
     <string name="settings_ui_language_system_default">Valeur par défaut du système</string>
+    <string name="settings_app_version_label">Version de l’application :</string>
 </resources>

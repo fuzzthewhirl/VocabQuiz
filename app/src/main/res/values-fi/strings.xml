@@ -51,4 +51,5 @@
     <string name="translate_close">Sulje</string>
     <string name="settings_ui_language_label">Käyttöliittymän kieli</string>
     <string name="settings_ui_language_system_default">Järjestelmän oletus</string>
+    <string name="settings_app_version_label">Sovellusversio:</string>
 </resources>

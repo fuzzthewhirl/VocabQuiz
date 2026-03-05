@@ -52,4 +52,5 @@
     <string name="translate_close">Luk</string>
     <string name="settings_ui_language_label">Grænsefladesprog</string>
     <string name="settings_ui_language_system_default">Systemstandard</string>
+    <string name="settings_app_version_label">App-version:</string>
 </resources>

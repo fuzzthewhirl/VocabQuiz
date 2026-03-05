@@ -10,8 +10,8 @@
     <string name="select">Dewis</string>
     <string name="no_data">Dim data (mewngofnodi / dalen / rhyngrwyd)</string>
     <string name="tap_to_reveal">Tapio i ddatgelu
-(Pwyswch yn hir i gopïo\'r prompt)</string>
-    <string name="copied_to_clipboard">Copïwyd i\'r clipfwrdd</string>
+(Pwyswch yn hir i gopïo’r prompt)</string>
+    <string name="copied_to_clipboard">Copïwyd i’r clipfwrdd</string>
     <string name="init_starting">Yn cychwyn…</string>
     <string name="init_loading_data">Yn llwytho geirfa…</string>
     <string name="init_reading_settings">Yn darllen gosodiadau…</string>
@@ -29,10 +29,10 @@
     <string name="settings_loading_sheets">Yn llwytho dalenni…</string>
     <string name="settings_error_missing_id">Rhowch ID taenlen i barhau.</string>
     <string name="settings_error_fetch_failed">Methu nôl dalenni. Gwiriwch fewngofnodi a rhwydwaith.</string>
-    <string name="settings_error_no_sheets">Dim dalenni wedi\'u canfod ar gyfer y daenlen hon.</string>
-    <string name="settings_error_data_load_failed">Dalen wedi\'i llwytho, ond dim data cydnaws wedi\'i ganfod.</string>
+    <string name="settings_error_no_sheets">Dim dalenni wedi’u canfod ar gyfer y daenlen hon.</string>
+    <string name="settings_error_data_load_failed">Dalen wedi’i llwytho, ond dim data cydnaws wedi’i ganfod.</string>
     <string name="settings_error_folder_missing">Heb ganfod ffolder Drive "VocabQuiz".</string>
-    <string name="settings_error_folder_empty">Dim taenlenni wedi\'u canfod yn "VocabQuiz".</string>
+    <string name="settings_error_folder_empty">Dim taenlenni wedi’u canfod yn "VocabQuiz".</string>
     <string name="settings_error_drive_failed">Methu cyrchu Drive. Gwiriwch fewngofnodi a rhwydwaith.</string>
     <string name="settings_reauth">Awdurdodi eto</string>
     <string name="settings_open">Agor gosodiadau</string>
@@ -42,7 +42,7 @@
     <string name="settings_supported_languages_hint">Defnyddiwch y enwau hyn yng ngholofnau A a B.</string>
     <string name="no_language_pairs">Dim parau ieithoedd ar gael yn y ddalen hon.</string>
     <string name="sign_in_title">Mae angen mewngofnodi</string>
-    <string name="sign_in_message">Mewngofnodwch i gael mynediad i\'ch geirfa.</string>
+    <string name="sign_in_message">Mewngofnodwch i gael mynediad i’ch geirfa.</string>
     <string name="sign_in_loading">Yn agor Google Sign-In…</string>
     <string name="sign_in_failed">Methu mewngofnodi. Rhowch gynnig arall.</string>
     <string name="sign_in_retry">Rhowch gynnig arall</string>
@@ -52,4 +52,5 @@
     <string name="translate_close">Cau</string>
     <string name="settings_ui_language_label">Iaith y rhyngwyneb</string>
     <string name="settings_ui_language_system_default">Rhagosodiad y system</string>
+    <string name="settings_app_version_label">Fersiwn y rhaglen:</string>
 </resources>

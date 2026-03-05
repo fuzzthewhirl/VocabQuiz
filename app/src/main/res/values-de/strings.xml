@@ -52,4 +52,5 @@
     <string name="translate_close">Schließen</string>
     <string name="settings_ui_language_label">Sprache der Benutzeroberfläche</string>
     <string name="settings_ui_language_system_default">Systemstandard</string>
+    <string name="settings_app_version_label">App-Version:</string>
 </resources>

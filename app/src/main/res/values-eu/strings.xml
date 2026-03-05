@@ -52,4 +52,5 @@
     <string name="translate_close">Itxi</string>
     <string name="settings_ui_language_label">Interfazearen hizkuntza</string>
     <string name="settings_ui_language_system_default">Sistemaren lehenetsia</string>
+    <string name="settings_app_version_label">Aplikazioaren bertsioa:</string>
 </resources>

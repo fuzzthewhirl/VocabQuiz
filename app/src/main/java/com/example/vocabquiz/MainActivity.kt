@@ -75,6 +75,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
 import java.net.URLEncoder
 import java.util.Locale
+import com.example.vocabquiz.BuildConfig
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -365,6 +366,26 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.Start
             ) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 1.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_app_version_label),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = BuildConfig.VERSION_NAME,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
                 Surface(
                     shape = MaterialTheme.shapes.medium,
                     tonalElevation = 1.dp,
