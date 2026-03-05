@@ -50,4 +50,6 @@
     <string name="translate_hint">Yn agor: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Cau</string>
+    <string name="settings_ui_language_label">Iaith y rhyngwyneb</string>
+    <string name="settings_ui_language_system_default">Rhagosodiad y system</string>
 </resources>

@@ -50,4 +50,6 @@
     <string name="translate_hint">Megnyitja: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Bezárás</string>
+    <string name="settings_ui_language_label">Felület nyelve</string>
+    <string name="settings_ui_language_system_default">Rendszer alapértelmezett</string>
 </resources>

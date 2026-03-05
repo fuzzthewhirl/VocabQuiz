@@ -19,6 +19,7 @@ class SettingsStore(private val context: Context) {
         val LAST_IDX  = intPreferencesKey("last_index")    // index within chunk
         val SPREADSHEET_ID = stringPreferencesKey("spreadsheet_id")
         val SHEET_TAB = stringPreferencesKey("sheet_tab")
+        val UI_LANGUAGE_TAG = stringPreferencesKey("ui_language_tag")
     }
 
     data class Snapshot(
@@ -27,7 +28,8 @@ class SettingsStore(private val context: Context) {
         val offset: Int = 0,
         val index: Int = 0,
         val spreadsheetId: String? = null,
-        val sheetTab: String? = null
+        val sheetTab: String? = null,
+        val uiLanguageTag: String? = null
     )
 
     val snapshot: Flow<Snapshot> = context.dataStore.data.map { p ->
@@ -37,7 +39,8 @@ class SettingsStore(private val context: Context) {
             offset = p[Keys.LAST_OFF] ?: 0,
             index  = p[Keys.LAST_IDX] ?: 0,
             spreadsheetId = p[Keys.SPREADSHEET_ID],
-            sheetTab = p[Keys.SHEET_TAB]
+            sheetTab = p[Keys.SHEET_TAB],
+            uiLanguageTag = p[Keys.UI_LANGUAGE_TAG]
         )
     }
 
@@ -57,5 +60,15 @@ class SettingsStore(private val context: Context) {
 
     suspend fun saveSheetTab(sheetTab: String) {
         context.dataStore.edit { it[Keys.SHEET_TAB] = sheetTab }
+    }
+
+    suspend fun saveUiLanguageTag(tag: String?) {
+        context.dataStore.edit {
+            if (tag.isNullOrBlank()) {
+                it.remove(Keys.UI_LANGUAGE_TAG)
+            } else {
+                it[Keys.UI_LANGUAGE_TAG] = tag
+            }
+        }
     }
 }

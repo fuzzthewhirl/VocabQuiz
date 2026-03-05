@@ -74,6 +74,7 @@ import com.example.vocabquiz.ui.SettingsError
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
 import java.net.URLEncoder
+import java.util.Locale
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -429,6 +430,62 @@ private fun SettingsScreen(on: QuizViewModel, onBack: () -> Unit) {
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.settings_ui_language_label),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        val systemDefaultLabel = stringResource(R.string.settings_ui_language_system_default)
+                        val uiLanguageTags = remember {
+                            listOf(
+                                "en",
+                                "ca",
+                                "cs",
+                                "cy",
+                                "da",
+                                "de",
+                                "el",
+                                "es",
+                                "eu",
+                                "fi",
+                                "fr",
+                                "ga",
+                                "gl",
+                                "hu",
+                                "is",
+                                "it",
+                                "nl",
+                                "no",
+                                "pl",
+                                "pt",
+                                "ro",
+                                "sk",
+                                "sv"
+                            )
+                        }
+                        val uiLanguageOptions = remember(systemDefaultLabel) {
+                            val languageOptions = uiLanguageTags
+                                .map { tag -> UiLanguageOption(tag, uiLanguageLabel(tag)) }
+                                .sortedBy { it.label }
+                            listOf(UiLanguageOption(null, systemDefaultLabel)) + languageOptions
+                        }
+                        UiLanguageDropdown(
+                            label = stringResource(R.string.settings_ui_language_label),
+                            items = uiLanguageOptions,
+                            selectedTag = ui.uiLanguageTag,
+                            onSelect = { on.setUiLanguage(it) }
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 1.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(stringResource(R.string.settings_supported_languages_label), style = MaterialTheme.typography.labelLarge)
@@ -706,6 +763,57 @@ private fun SpreadsheetDropdown(
             }
         }
     }
+}
+
+private data class UiLanguageOption(
+    val tag: String?,
+    val label: String
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UiLanguageDropdown(
+    label: String,
+    items: List<UiLanguageOption>,
+    selectedTag: String?,
+    onSelect: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = items.firstOrNull { it.tag == selectedTag } ?: items.first()
+    val currentLabel = selected.label
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        TextField(
+            value = "$label: $currentLabel",
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    onClick = {
+                        expanded = false
+                        onSelect(option.tag)
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun uiLanguageLabel(tag: String): String {
+    val locale = Locale.forLanguageTag(tag)
+    val nativeName = titleCase(locale.getDisplayName(locale), locale)
+    val englishName = titleCase(locale.getDisplayName(Locale.ENGLISH), Locale.ENGLISH)
+    return "$nativeName ($englishName)"
+}
+
+private fun titleCase(text: String, locale: Locale): String {
+    if (text.isBlank()) return text
+    return text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 }
 
 @Composable

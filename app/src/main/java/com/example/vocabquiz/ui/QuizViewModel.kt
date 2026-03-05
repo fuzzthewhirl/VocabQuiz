@@ -1,6 +1,8 @@
 package com.example.vocabquiz.ui
 
 import android.app.Application
+import android.app.LocaleManager
+import android.os.LocaleList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabquiz.data.FolderNotFoundException
@@ -57,6 +59,7 @@ data class SettingsUiState(
     val spreadsheets: List<SpreadsheetInfo> = emptyList(),
     val sheetNames: List<String> = emptyList(),
     val selectedSheet: String? = null,
+    val uiLanguageTag: String? = null,
     val loadingSpreadsheets: Boolean = false,
     val loadingSheets: Boolean = false,
     val error: SettingsError? = null,
@@ -98,10 +101,14 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
 
             val spreadsheetId = snap.spreadsheetId?.ifBlank { null } ?: DEFAULT_SPREADSHEET_ID
             val savedSheetTab = snap.sheetTab?.ifBlank { null }
+            val uiLanguageTag = snap.uiLanguageTag?.ifBlank { null }
+
+            applyUiLanguage(uiLanguageTag)
 
             _settingsState.value = _settingsState.value.copy(
                 spreadsheetId = spreadsheetId,
-                selectedSheet = savedSheetTab
+                selectedSheet = savedSheetTab,
+                uiLanguageTag = uiLanguageTag
             )
 
             val sheetTab = if (savedSheetTab == null) {
@@ -233,6 +240,12 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         _settingsState.value = _settingsState.value.copy(selectedSheet = sheet)
     }
 
+    fun setUiLanguage(tag: String?) {
+        _settingsState.value = _settingsState.value.copy(uiLanguageTag = tag)
+        applyUiLanguage(tag)
+        viewModelScope.launch { settings.saveUiLanguageTag(tag) }
+    }
+
     fun refreshSpreadsheets() {
         viewModelScope.launch {
             _settingsState.value = _settingsState.value.copy(
@@ -357,6 +370,18 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             lastErrorMessage = detail,
             lastErrorAt = timestamp
         )
+    }
+
+    private fun applyUiLanguage(tag: String?) {
+        val manager = getApplication<Application>().getSystemService(LocaleManager::class.java)
+        if (manager != null) {
+            val locales = if (tag.isNullOrBlank()) {
+                LocaleList.getEmptyLocaleList()
+            } else {
+                LocaleList.forLanguageTags(tag)
+            }
+            manager.applicationLocales = locales
+        }
     }
 
     private suspend fun reloadData(spreadsheetId: String, sheetTab: String) {

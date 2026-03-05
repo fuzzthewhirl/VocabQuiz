@@ -49,4 +49,6 @@
     <string name="translate_hint">Avautuu: %1$s</string>
     <string name="translate_title">Google-kääntäjä</string>
     <string name="translate_close">Sulje</string>
+    <string name="settings_ui_language_label">Käyttöliittymän kieli</string>
+    <string name="settings_ui_language_system_default">Järjestelmän oletus</string>
 </resources>

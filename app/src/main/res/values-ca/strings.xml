@@ -50,4 +50,6 @@
     <string name="translate_hint">S\'obre: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Tanca</string>
+    <string name="settings_ui_language_label">Idioma de la interfície</string>
+    <string name="settings_ui_language_system_default">Predeterminat del sistema</string>
 </resources>

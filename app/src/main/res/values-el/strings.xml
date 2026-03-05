@@ -50,4 +50,6 @@
     <string name="translate_hint">Ανοίγει: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Κλείσιμο</string>
+    <string name="settings_ui_language_label">Γλώσσα διεπαφής</string>
+    <string name="settings_ui_language_system_default">Προεπιλογή συστήματος</string>
 </resources>

@@ -50,4 +50,6 @@
     <string name="translate_hint">Deschide: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Închide</string>
+    <string name="settings_ui_language_label">Limba interfeței</string>
+    <string name="settings_ui_language_system_default">Implicit de sistem</string>
 </resources>

@@ -50,4 +50,6 @@
     <string name="translate_hint">Ábrese: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Pechar</string>
+    <string name="settings_ui_language_label">Idioma da interface</string>
+    <string name="settings_ui_language_system_default">Predeterminado do sistema</string>
 </resources>

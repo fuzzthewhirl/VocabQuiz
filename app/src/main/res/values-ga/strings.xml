@@ -50,4 +50,6 @@
     <string name="translate_hint">Osclaíonn: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Dún</string>
+    <string name="settings_ui_language_label">Teanga an chomhéadain</string>
+    <string name="settings_ui_language_system_default">Réamhshocrú an chórais</string>
 </resources>

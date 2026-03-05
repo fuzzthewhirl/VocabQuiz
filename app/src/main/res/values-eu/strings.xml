@@ -50,4 +50,6 @@
     <string name="translate_hint">Irekitzen da: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Itxi</string>
+    <string name="settings_ui_language_label">Interfazearen hizkuntza</string>
+    <string name="settings_ui_language_system_default">Sistemaren lehenetsia</string>
 </resources>
