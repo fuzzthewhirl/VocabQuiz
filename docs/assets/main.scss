@@ -1,0 +1,67 @@
+---
+---
+@import "minima";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0f1114;
+  color: #e6e8ec;
+}
+
+a,
+a:visited {
+  color: #9bb5ff;
+}
+
+a:hover {
+  color: #c7d5ff;
+}
+
+.site-header,
+.site-footer {
+  background-color: #141821;
+  border-color: #2b3038;
+}
+
+.site-title,
+.site-title:visited,
+.site-nav .page-link {
+  color: #e6e8ec;
+}
+
+.page-content,
+.post-content {
+  color: #e6e8ec;
+}
+
+blockquote {
+  border-left-color: #2b3038;
+  color: #b3bac4;
+}
+
+code,
+pre {
+  background-color: #1b202a;
+  border-color: #2b3038;
+}
+
+hr {
+  border-color: #2b3038;
+}
+
+table,
+th,
+td {
+  border-color: #2b3038;
+}
+
+thead {
+  background-color: #151a24;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #131822;
+}

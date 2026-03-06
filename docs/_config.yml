@@ -1,5 +1,7 @@
 title: VocabQuiz Documentation
 description: Documentation for the VocabQuiz Android app
 theme: minima
+minima:
+  skin: dark
 markdown: kramdown
 plugins: []
