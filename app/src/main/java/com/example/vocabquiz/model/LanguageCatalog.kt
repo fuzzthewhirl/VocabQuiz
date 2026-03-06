@@ -1,5 +1,7 @@
 package com.example.vocabquiz.model
 
+import java.util.Locale
+
 data class LanguageSpec(
     val canonical: String,
     val code: String,
@@ -56,5 +58,12 @@ object LanguageCatalog {
     fun toTranslateCode(canonical: String?): String? {
         val key = canonical?.trim()?.lowercase() ?: return null
         return canonicalToCode[key]
+    }
+
+    fun displayName(canonical: String, locale: Locale): String {
+        val code = toTranslateCode(canonical) ?: return canonical
+        val languageLocale = Locale.forLanguageTag(code)
+        val display = languageLocale.getDisplayLanguage(locale)
+        return if (display.isBlank()) canonical else display
     }
 }

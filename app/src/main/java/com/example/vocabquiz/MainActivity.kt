@@ -80,6 +80,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
@@ -681,7 +682,13 @@ private fun PairDropdown(
     onSelect: (LanguagePair) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val currentLabel = selected?.toString() ?: stringResource(R.string.select)
+    val configuration = LocalConfiguration.current
+    val locale = remember(configuration) {
+        val locales = configuration.locales
+        if (locales.isEmpty) Locale.getDefault() else locales[0]
+    }
+    val currentLabel = selected?.let { localizedPairLabel(it, locale) }
+        ?: stringResource(R.string.select)
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         TextField(
@@ -694,7 +701,7 @@ private fun PairDropdown(
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             items.forEach { pair ->
                 DropdownMenuItem(
-                    text = { Text(pair.toString()) },
+                    text = { Text(localizedPairLabel(pair, locale)) },
                     onClick = {
                         expanded = false
                         onSelect(pair)
@@ -703,6 +710,12 @@ private fun PairDropdown(
             }
         }
     }
+}
+
+private fun localizedPairLabel(pair: LanguagePair, locale: Locale): String {
+    val srcName = LanguageCatalog.displayName(pair.src, locale)
+    val tgtName = LanguageCatalog.displayName(pair.tgt, locale)
+    return "$srcName → $tgtName"
 }
 
 @Composable
