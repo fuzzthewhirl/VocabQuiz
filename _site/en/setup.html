@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Setup and Data Format (English) | VocabQuiz Documentation</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Setup and Data Format (English)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation for the VocabQuiz Android app" />
+<meta property="og:description" content="Documentation for the VocabQuiz Android app" />
+<link rel="canonical" href="http://localhost:4000/en/setup.html" />
+<meta property="og:url" content="http://localhost:4000/en/setup.html" />
+<meta property="og:site_name" content="VocabQuiz Documentation" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Setup and Data Format (English)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Documentation for the VocabQuiz Android app","headline":"Setup and Data Format (English)","url":"http://localhost:4000/en/setup.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="VocabQuiz Documentation" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">VocabQuiz Documentation</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/en/faq.html">FAQ and Troubleshooting (English)</a><a class="page-link" href="/fi/faq.html">UKK ja vianetsintä (Suomi)</a><a class="page-link" href="/en/features.html">Features (English)</a><a class="page-link" href="/fi/features.html">Toiminnot (Suomi)</a><a class="page-link" href="/">VocabQuiz Documentation</a><a class="page-link" href="/fi/">VocabQuiz-dokumentaatio (Suomi)</a><a class="page-link" href="/en/">VocabQuiz Documentation (English)</a><a class="page-link" href="/fi/setup.html">Asetukset ja datan muoto (Suomi)</a><a class="page-link" href="/en/setup.html">Setup and Data Format (English)</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <table>
+  <tbody>
+    <tr>
+      <td>Language: English</td>
+      <td><a href="/fi/setup.html">Suomi</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="setup-and-data-format">Setup and Data Format</h1>
+
+<p>This guide explains how to sign in, organize your Drive folder, and format your Google Sheet for VocabQuiz.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul id="markdown-toc">
+  <li><a href="#setup-and-data-format" id="markdown-toc-setup-and-data-format">Setup and Data Format</a>    <ul>
+      <li><a href="#table-of-contents" id="markdown-toc-table-of-contents">Table of Contents</a></li>
+      <li><a href="#prerequisites" id="markdown-toc-prerequisites">Prerequisites</a></li>
+      <li><a href="#sign-in" id="markdown-toc-sign-in">Sign in</a></li>
+      <li><a href="#drive-folder-structure" id="markdown-toc-drive-folder-structure">Drive folder structure</a></li>
+      <li><a href="#spreadsheet-selection" id="markdown-toc-spreadsheet-selection">Spreadsheet selection</a></li>
+      <li><a href="#sheet-format" id="markdown-toc-sheet-format">Sheet format</a>        <ul>
+          <li><a href="#example" id="markdown-toc-example">Example</a></li>
+        </ul>
+      </li>
+      <li><a href="#supported-language-names" id="markdown-toc-supported-language-names">Supported language names</a></li>
+      <li><a href="#quiz-chunking" id="markdown-toc-quiz-chunking">Quiz chunking</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>A Google account</li>
+  <li>A Google Sheet containing vocabulary data</li>
+  <li>Internet access (required for loading sheets)</li>
+</ul>
+
+<h2 id="sign-in">Sign in</h2>
+
+<p>On first launch, sign in with Google. The app requests read-only permissions for Sheets and Drive.</p>
+
+<p><img src="/assets/img/feature-signin.png" alt="Sign-in screen" /></p>
+
+<h2 id="drive-folder-structure">Drive folder structure</h2>
+
+<p>Create a Drive folder named exactly <code class="language-plaintext highlighter-rouge">VocabQuiz</code> in your Drive root. Place your vocabulary spreadsheets inside this folder. The app lists spreadsheets from this folder.</p>
+
+<p><img src="/assets/img/feature-drive-sheets.png" alt="Drive and Sheets flow" /></p>
+
+<h2 id="spreadsheet-selection">Spreadsheet selection</h2>
+
+<p>Use Settings to pick the spreadsheet and sheet tab. The selection is remembered.</p>
+
+<p><img src="/assets/img/feature-settings.png" alt="Settings screen" /></p>
+
+<h2 id="sheet-format">Sheet format</h2>
+
+<p>The app reads columns A through D:</p>
+
+<ol>
+  <li><strong>A: Source language name</strong> (for example <code class="language-plaintext highlighter-rouge">English</code>)</li>
+  <li><strong>B: Target language name</strong> (for example <code class="language-plaintext highlighter-rouge">Finnish</code>)</li>
+  <li><strong>C: Source word</strong></li>
+  <li><strong>D: Target word</strong></li>
+</ol>
+
+<p>Rows with missing values or same-language pairs are ignored.</p>
+
+<h3 id="example">Example</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>A (Source language)</th>
+      <th>B (Target language)</th>
+      <th>C (Source word)</th>
+      <th>D (Target word)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>English</td>
+      <td>Finnish</td>
+      <td>cat</td>
+      <td>kissa</td>
+    </tr>
+    <tr>
+      <td>Finnish</td>
+      <td>English</td>
+      <td>koira</td>
+      <td>dog</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="supported-language-names">Supported language names</h2>
+
+<p>Use the supported language names listed in Settings. The app normalizes common aliases (for example <code class="language-plaintext highlighter-rouge">espanol</code> -&gt; <code class="language-plaintext highlighter-rouge">Spanish</code>).</p>
+
+<p><img src="/assets/img/feature-localization.png" alt="Supported languages" /></p>
+
+<h2 id="quiz-chunking">Quiz chunking</h2>
+
+<p>VocabQuiz loads words in chunks (default size 10) and provides navigation between chunks in the main quiz screen.</p>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">VocabQuiz Documentation</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">VocabQuiz Documentation</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Documentation for the VocabQuiz Android app</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Asetukset ja datan muoto (Suomi) | VocabQuiz Documentation</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Asetukset ja datan muoto (Suomi)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation for the VocabQuiz Android app" />
+<meta property="og:description" content="Documentation for the VocabQuiz Android app" />
+<link rel="canonical" href="http://localhost:4000/fi/setup.html" />
+<meta property="og:url" content="http://localhost:4000/fi/setup.html" />
+<meta property="og:site_name" content="VocabQuiz Documentation" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Asetukset ja datan muoto (Suomi)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Documentation for the VocabQuiz Android app","headline":"Asetukset ja datan muoto (Suomi)","url":"http://localhost:4000/fi/setup.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="VocabQuiz Documentation" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">VocabQuiz Documentation</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/en/faq.html">FAQ and Troubleshooting (English)</a><a class="page-link" href="/fi/faq.html">UKK ja vianetsintä (Suomi)</a><a class="page-link" href="/en/features.html">Features (English)</a><a class="page-link" href="/fi/features.html">Toiminnot (Suomi)</a><a class="page-link" href="/">VocabQuiz Documentation</a><a class="page-link" href="/fi/">VocabQuiz-dokumentaatio (Suomi)</a><a class="page-link" href="/en/">VocabQuiz Documentation (English)</a><a class="page-link" href="/fi/setup.html">Asetukset ja datan muoto (Suomi)</a><a class="page-link" href="/en/setup.html">Setup and Data Format (English)</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <table>
+  <tbody>
+    <tr>
+      <td>Kieli: <a href="/en/setup.html">English</a></td>
+      <td>Suomi</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="asetukset-ja-datan-muoto">Asetukset ja datan muoto</h1>
+
+<p>Tämä ohje kertoo, miten kirjaudut sisään, järjestät Drive-kansion ja muotoilet Google Sheetin VocabQuizille.</p>
+
+<h2 id="sisällysluettelo">Sisällysluettelo</h2>
+<ul id="markdown-toc">
+  <li><a href="#asetukset-ja-datan-muoto" id="markdown-toc-asetukset-ja-datan-muoto">Asetukset ja datan muoto</a>    <ul>
+      <li><a href="#sisällysluettelo" id="markdown-toc-sisällysluettelo">Sisällysluettelo</a></li>
+      <li><a href="#edellytykset" id="markdown-toc-edellytykset">Edellytykset</a></li>
+      <li><a href="#kirjautuminen" id="markdown-toc-kirjautuminen">Kirjautuminen</a></li>
+      <li><a href="#drive-kansion-rakenne" id="markdown-toc-drive-kansion-rakenne">Drive-kansion rakenne</a></li>
+      <li><a href="#taulukon-valinta" id="markdown-toc-taulukon-valinta">Taulukon valinta</a></li>
+      <li><a href="#sheetin-muoto" id="markdown-toc-sheetin-muoto">Sheetin muoto</a>        <ul>
+          <li><a href="#esimerkki" id="markdown-toc-esimerkki">Esimerkki</a></li>
+        </ul>
+      </li>
+      <li><a href="#tuetut-kielinimet" id="markdown-toc-tuetut-kielinimet">Tuetut kielinimet</a></li>
+      <li><a href="#harjoituspala-chunk" id="markdown-toc-harjoituspala-chunk">Harjoituspala (chunk)</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="edellytykset">Edellytykset</h2>
+
+<ul>
+  <li>Google-tili</li>
+  <li>Google Sheet, jossa sanastodata</li>
+  <li>Internet-yhteys (tarvitaan datan lataamiseen)</li>
+</ul>
+
+<h2 id="kirjautuminen">Kirjautuminen</h2>
+
+<p>Ensimmäisellä käynnistyskerralla kirjaudu Google-tilillä. Sovellus pyytää vain lukuoikeudet Sheetsiin ja Driveen.</p>
+
+<p><img src="/assets/img/feature-signin.png" alt="Kirjautumisnäkymä" /></p>
+
+<h2 id="drive-kansion-rakenne">Drive-kansion rakenne</h2>
+
+<p>Luo Driveen juuriin kansio nimeltä <code class="language-plaintext highlighter-rouge">VocabQuiz</code> ja tallenna sanastotaulukot tähän kansioon. Sovellus listaa taulukot tästä kansiosta.</p>
+
+<p><img src="/assets/img/feature-drive-sheets.png" alt="Drive ja Sheets" /></p>
+
+<h2 id="taulukon-valinta">Taulukon valinta</h2>
+
+<p>Valitse asetuksista taulukko ja sheet-välilehti. Valinnat muistetaan.</p>
+
+<p><img src="/assets/img/feature-settings.png" alt="Asetukset" /></p>
+
+<h2 id="sheetin-muoto">Sheetin muoto</h2>
+
+<p>Sovellus lukee sarakkeet A-D:</p>
+
+<ol>
+  <li><strong>A: Lähdekielen nimi</strong> (esimerkiksi <code class="language-plaintext highlighter-rouge">English</code>)</li>
+  <li><strong>B: Kohdekielen nimi</strong> (esimerkiksi <code class="language-plaintext highlighter-rouge">Finnish</code>)</li>
+  <li><strong>C: Lähdesana</strong></li>
+  <li><strong>D: Kohdesana</strong></li>
+</ol>
+
+<p>Rivit, joista puuttuu arvoja tai joissa kielet ovat samat, ohitetaan.</p>
+
+<h3 id="esimerkki">Esimerkki</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>A (Lähdekieli)</th>
+      <th>B (Kohdekieli)</th>
+      <th>C (Lähdesana)</th>
+      <th>D (Kohdesana)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>English</td>
+      <td>Finnish</td>
+      <td>cat</td>
+      <td>kissa</td>
+    </tr>
+    <tr>
+      <td>Finnish</td>
+      <td>English</td>
+      <td>koira</td>
+      <td>dog</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="tuetut-kielinimet">Tuetut kielinimet</h2>
+
+<p>Käytä asetuksissa näkyviä tuettuja kielinimiä sarakkeissa A ja B. Sovellus tunnistaa myös yleisiä aliasmuotoja.</p>
+
+<p><img src="/assets/img/feature-localization.png" alt="Tuetut kielet" /></p>
+
+<h2 id="harjoituspala-chunk">Harjoituspala (chunk)</h2>
+
+<p>Sovellus lataa sanat paloina (oletus 10) ja tarjoaa siirtymät palojen välillä päänäkymässä.</p>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">VocabQuiz Documentation</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">VocabQuiz Documentation</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Documentation for the VocabQuiz Android app</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
