@@ -10,6 +10,7 @@ import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -51,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -260,11 +262,13 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                 )
 
                 // Answer bubble (tap to reveal / advance)
-                AnswerBubble(
-                    st = st,
-                    onNext = { on.nextCard() },
-                    onToggleReveal = { on.toggleReveal() }
-                )
+                key(st.index) {
+                    AnswerBubble(
+                        st = st,
+                        onNext = { on.nextCard() },
+                        onToggleReveal = { on.toggleReveal() }
+                    )
+                }
 
             // Card paging
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -640,7 +644,7 @@ private fun AnswerBubble(st: QuizState, onNext: () -> Unit, onToggleReveal: () -
             AnimatedVisibility(
                 visible = st.revealed,
                 enter = fadeIn() + scaleIn(initialScale = 0.99f),
-                exit = fadeOut() + scaleOut(targetScale = 0.99f)
+                exit = ExitTransition.None
             ) {
                 Text(
                     st.answerText,
