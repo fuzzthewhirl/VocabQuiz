@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Sprache der Benutzeroberfläche</string>
     <string name="settings_ui_language_system_default">Systemstandard</string>
     <string name="settings_app_version_label">App-Version:</string>
+    <string name="data_warning_rows_skipped">Geladen: %1$d Zeilen, %2$d ungültige übersprungen.</string>
+    <string name="data_error_no_valid_rows">Es konnten keine gültigen Zeilen aus dem Sheet geladen werden.</string>
+    <string name="data_error_no_pairs">Es konnten keine unterstützten Sprachpaare aus dem Sheet geladen werden.</string>
+    <string name="settings_error_sheet_missing">Das gespeicherte Blatt wurde in dieser Arbeitsmappe nicht gefunden. Bitte wählen Sie ein Blatt.</string>
 </resources>

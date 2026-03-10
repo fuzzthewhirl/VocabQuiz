@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Tungumál viðmóts</string>
     <string name="settings_ui_language_system_default">Sjálfgefið kerfi</string>
     <string name="settings_app_version_label">Útgáfa forrits:</string>
+    <string name="data_warning_rows_skipped">Hlaðið inn %1$d röðum, sleppt %2$d ógildum.</string>
+    <string name="data_error_no_valid_rows">Engar gildar raðir tókst að hlaða úr töflunni.</string>
+    <string name="data_error_no_pairs">Engin studd tungumálapör tókst að hlaða úr töflunni.</string>
+    <string name="settings_error_sheet_missing">Vistaða blaðið fannst ekki í þessari vinnubók. Veldu blað.</string>
 </resources>

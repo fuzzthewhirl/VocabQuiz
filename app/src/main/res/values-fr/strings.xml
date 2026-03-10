@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Langue de l’interface</string>
     <string name="settings_ui_language_system_default">Valeur par défaut du système</string>
     <string name="settings_app_version_label">Version de l’application :</string>
+    <string name="data_warning_rows_skipped">%1$d lignes chargées, %2$d invalides ignorées.</string>
+    <string name="data_error_no_valid_rows">Aucune ligne valide n\'a pu être chargée depuis la feuille.</string>
+    <string name="data_error_no_pairs">Aucun couple de langues pris en charge n\'a pu être chargé depuis la feuille.</string>
+    <string name="settings_error_sheet_missing">La feuille enregistrée n’a pas été trouvée dans ce classeur. Sélectionnez une feuille.</string>
 </resources>

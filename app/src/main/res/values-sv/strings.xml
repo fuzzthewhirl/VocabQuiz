@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Gränssnittsspråk</string>
     <string name="settings_ui_language_system_default">Systemstandard</string>
     <string name="settings_app_version_label">Appversion:</string>
+    <string name="data_warning_rows_skipped">Laddade %1$d rader, hoppade över %2$d ogiltiga.</string>
+    <string name="data_error_no_valid_rows">Inga giltiga rader kunde läsas in från arket.</string>
+    <string name="data_error_no_pairs">Inga stödda språkpar kunde läsas in från arket.</string>
+    <string name="settings_error_sheet_missing">Det sparade arket hittades inte i den här arbetsboken. Välj ett ark.</string>
 </resources>

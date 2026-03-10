@@ -68,6 +68,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabquiz.data.SpreadsheetInfo
+import com.example.vocabquiz.data.LoadIssue
 import com.example.vocabquiz.model.LanguageCatalog
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.ui.QuizState
@@ -141,7 +142,12 @@ class MainActivity : ComponentActivity() {
                             }
                             QuizState.Status.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(stringResource(R.string.no_data))
+                                    val errorMessage = when (st.loadIssue) {
+                                        LoadIssue.NoValidRows -> stringResource(R.string.data_error_no_valid_rows)
+                                        LoadIssue.NoPairs -> stringResource(R.string.data_error_no_pairs)
+                                        null -> stringResource(R.string.no_data)
+                                    }
+                                    Text(errorMessage)
                                     Text(
                                         text = initPhaseLabel(st.initPhase),
                                         style = MaterialTheme.typography.labelMedium,
@@ -238,6 +244,28 @@ fun FlashcardScreen(st: QuizState, on: QuizViewModel, onOpenSettings: () -> Unit
                         stringResource(R.string.no_language_pairs),
                         style = MaterialTheme.typography.labelLarge
                     )
+                }
+
+                st.loadReport?.let { report ->
+                    if (report.skippedRows > 0) {
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            tonalElevation = 1.dp,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    R.string.data_warning_rows_skipped,
+                                    report.validRows,
+                                    report.skippedRows
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
                 }
 
                 // Progress
@@ -859,6 +887,7 @@ private fun settingsErrorLabel(error: SettingsError): String {
         SettingsError.MissingSpreadsheetId -> stringResource(R.string.settings_error_missing_id)
         SettingsError.FetchFailed -> stringResource(R.string.settings_error_fetch_failed)
         SettingsError.NoSheets -> stringResource(R.string.settings_error_no_sheets)
+        SettingsError.SheetMissing -> stringResource(R.string.settings_error_sheet_missing)
         SettingsError.DataLoadFailed -> stringResource(R.string.settings_error_data_load_failed)
         SettingsError.FolderMissing -> stringResource(R.string.settings_error_folder_missing)
         SettingsError.FolderEmpty -> stringResource(R.string.settings_error_folder_empty)

@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Felület nyelve</string>
     <string name="settings_ui_language_system_default">Rendszer alapértelmezett</string>
     <string name="settings_app_version_label">Az alkalmazás verziója:</string>
+    <string name="data_warning_rows_skipped">Betöltve %1$d sor, kihagyva %2$d érvénytelen.</string>
+    <string name="data_error_no_valid_rows">A táblázatból nem sikerült érvényes sorokat betölteni.</string>
+    <string name="data_error_no_pairs">A táblázatból nem sikerült támogatott nyelvpárokat betölteni.</string>
+    <string name="settings_error_sheet_missing">A mentett munkalap nem található ebben a munkafüzetben. Válassz egy munkalapot.</string>
 </resources>

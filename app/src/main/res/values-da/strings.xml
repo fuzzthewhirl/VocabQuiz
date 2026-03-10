@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Grænsefladesprog</string>
     <string name="settings_ui_language_system_default">Systemstandard</string>
     <string name="settings_app_version_label">App-version:</string>
+    <string name="data_warning_rows_skipped">Indlæste %1$d rækker, sprang %2$d ugyldige over.</string>
+    <string name="data_error_no_valid_rows">Ingen gyldige rækker kunne indlæses fra arket.</string>
+    <string name="data_error_no_pairs">Ingen understøttede sprogpar kunne indlæses fra arket.</string>
+    <string name="settings_error_sheet_missing">Det gemte ark blev ikke fundet i denne projektmappe. Vælg et ark.</string>
 </resources>

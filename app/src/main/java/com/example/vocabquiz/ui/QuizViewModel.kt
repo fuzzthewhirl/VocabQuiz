@@ -6,6 +6,9 @@ import android.os.LocaleList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vocabquiz.data.FolderNotFoundException
+import com.example.vocabquiz.data.LoadIssue
+import com.example.vocabquiz.data.LoadIssueResolver
+import com.example.vocabquiz.data.LoadReport
 import com.example.vocabquiz.data.SettingsStore
 import com.example.vocabquiz.data.SpreadsheetInfo
 import android.util.Log
@@ -39,7 +42,9 @@ data class QuizState(
     val index: Int = 0,
     val promptText: String = "",
     val answerText: String = "",
-    val revealed: Boolean = false
+    val revealed: Boolean = false,
+    val loadReport: LoadReport? = null,
+    val loadIssue: LoadIssue? = null
 ) {
     enum class Status { Loading, Ready, Error }
     enum class InitPhase {
@@ -71,10 +76,29 @@ enum class SettingsError {
     MissingSpreadsheetId,
     FetchFailed,
     NoSheets,
+    SheetMissing,
     DataLoadFailed,
     FolderMissing,
     FolderEmpty,
     DriveFetchFailed
+}
+
+internal data class SheetSelection(
+    val selected: String?,
+    val missing: Boolean
+)
+
+internal fun selectSheetForStartup(saved: String?, names: List<String>): SheetSelection {
+    if (names.isEmpty()) return SheetSelection(null, missing = false)
+    if (saved == null) return SheetSelection(names.first(), missing = false)
+    if (names.contains(saved)) return SheetSelection(saved, missing = false)
+    return SheetSelection(null, missing = true)
+}
+
+internal fun selectSheetForRefresh(current: String?, names: List<String>): SheetSelection {
+    if (names.isEmpty()) return SheetSelection(null, missing = false)
+    if (current != null && names.contains(current)) return SheetSelection(current, missing = false)
+    return SheetSelection(null, missing = current != null)
 }
 
 class QuizViewModel(app: Application) : AndroidViewModel(app) {
@@ -111,41 +135,19 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 uiLanguageTag = uiLanguageTag
             )
 
-            val sheetTab = if (savedSheetTab == null) {
-                _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingSheets)
-                val result = repo.getSheetNames(spreadsheetId)
-                val names = result.getOrNull().orEmpty()
-                if (result.isFailure) {
-                    recordSettingsError(SettingsError.FetchFailed, result.exceptionOrNull()?.message)
-                    _state.value = _state.value.copy(
-                        status = QuizState.Status.Error,
-                        initPhase = QuizState.InitPhase.Error
-                    )
-                    return@launch
-                }
-                if (names.isEmpty()) {
-                    recordSettingsError(SettingsError.NoSheets, null)
-                    _state.value = _state.value.copy(
-                        status = QuizState.Status.Error,
-                        initPhase = QuizState.InitPhase.Error
-                    )
-                    return@launch
-                }
-                val first = names.first()
-                _settingsState.value = _settingsState.value.copy(
-                    sheetNames = names,
-                    selectedSheet = first
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingSheets)
+            val result = repo.getSheetNames(spreadsheetId)
+            val names = result.getOrNull().orEmpty()
+            if (result.isFailure) {
+                recordSettingsError(SettingsError.FetchFailed, result.exceptionOrNull()?.message)
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error
                 )
-                settings.saveSheetTab(first)
-                first
-            } else {
-                savedSheetTab
+                return@launch
             }
-
-            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
-            val sizes = repo.loadAll(spreadsheetId, sheetTab)
-            if (sizes.isEmpty()) {
-                recordSettingsError(SettingsError.DataLoadFailed, "No vocab rows loaded")
+            if (names.isEmpty()) {
+                recordSettingsError(SettingsError.NoSheets, null)
                 _state.value = _state.value.copy(
                     status = QuizState.Status.Error,
                     initPhase = QuizState.InitPhase.Error
@@ -153,12 +155,63 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
 
-            val availablePairs = repo.availablePairs()
-            if (availablePairs.isEmpty()) {
-                recordSettingsError(SettingsError.DataLoadFailed, "No language pairs available")
+            val selection = selectSheetForStartup(savedSheetTab, names)
+            _settingsState.value = _settingsState.value.copy(
+                sheetNames = names,
+                selectedSheet = selection.selected
+            )
+
+            if (selection.selected == null) {
+                if (selection.missing) {
+                    recordSettingsError(SettingsError.SheetMissing, "Saved sheet not found")
+                }
                 _state.value = _state.value.copy(
                     status = QuizState.Status.Error,
                     initPhase = QuizState.InitPhase.Error
+                )
+                return@launch
+            }
+
+            if (savedSheetTab == null) {
+                settings.saveSheetTab(selection.selected)
+            }
+
+            val sheetTab = selection.selected
+
+            _state.value = _state.value.copy(initPhase = QuizState.InitPhase.LoadingData)
+            val outcome = repo.loadAll(spreadsheetId, sheetTab)
+            if (outcome.isFailure) {
+                recordSettingsError(SettingsError.DataLoadFailed, outcome.exceptionOrNull()?.message)
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error
+                )
+                return@launch
+            }
+
+            val report = outcome.getOrNull()?.report
+            val issue = report?.let { LoadIssueResolver.resolve(it) }
+            if (report != null) {
+                _state.value = _state.value.copy(loadReport = report, loadIssue = issue)
+            }
+            if (issue == LoadIssue.NoValidRows) {
+                recordSettingsError(SettingsError.DataLoadFailed, "No valid vocab rows loaded")
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error,
+                    loadIssue = issue
+                )
+                return@launch
+            }
+
+            val availablePairs = repo.availablePairs()
+            if (availablePairs.isEmpty()) {
+                val noPairsIssue = issue ?: LoadIssue.NoPairs
+                recordSettingsError(SettingsError.DataLoadFailed, "No language pairs available")
+                _state.value = _state.value.copy(
+                    status = QuizState.Status.Error,
+                    initPhase = QuizState.InitPhase.Error,
+                    loadIssue = noPairsIssue
                 )
                 return@launch
             }
@@ -331,12 +384,15 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             val current = _settingsState.value.selectedSheet
-            val selected = if (current != null && names.contains(current)) current else names.first()
+            val selection = selectSheetForRefresh(current, names)
+            if (selection.missing) {
+                recordSettingsError(SettingsError.SheetMissing, "Saved sheet not found")
+            }
             _settingsState.value = _settingsState.value.copy(
                 loadingSheets = false,
                 sheetNames = names,
-                selectedSheet = selected,
-                error = null,
+                selectedSheet = selection.selected,
+                error = if (selection.missing) SettingsError.SheetMissing else null,
                 lastErrorMessage = _settingsState.value.lastErrorMessage,
                 lastErrorAt = _settingsState.value.lastErrorAt
             )
@@ -355,6 +411,7 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
         val spreadsheetId = current.spreadsheetId.trim()
         val sheetTab = current.selectedSheet
         if (spreadsheetId.isBlank() || sheetTab == null) return
+        if (!current.sheetNames.contains(sheetTab)) return
 
         viewModelScope.launch {
             settings.saveSpreadsheetId(spreadsheetId)
@@ -390,12 +447,14 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             initPhase = QuizState.InitPhase.LoadingData,
             pool = emptyList(),
             index = 0,
-            revealed = false
+            revealed = false,
+            loadReport = null,
+            loadIssue = null
         )
 
-        val sizes = repo.loadAll(spreadsheetId, sheetTab)
-        if (sizes.isEmpty()) {
-            recordSettingsError(SettingsError.DataLoadFailed, "No vocab rows loaded")
+        val outcome = repo.loadAll(spreadsheetId, sheetTab)
+        if (outcome.isFailure) {
+            recordSettingsError(SettingsError.DataLoadFailed, outcome.exceptionOrNull()?.message)
             _state.value = _state.value.copy(
                 status = QuizState.Status.Error,
                 initPhase = QuizState.InitPhase.Error
@@ -403,12 +462,29 @@ class QuizViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
+        val report = outcome.getOrNull()?.report
+        val issue = report?.let { LoadIssueResolver.resolve(it) }
+        if (report != null) {
+            _state.value = _state.value.copy(loadReport = report, loadIssue = issue)
+        }
+        if (issue == LoadIssue.NoValidRows) {
+            recordSettingsError(SettingsError.DataLoadFailed, "No valid vocab rows loaded")
+            _state.value = _state.value.copy(
+                status = QuizState.Status.Error,
+                initPhase = QuizState.InitPhase.Error,
+                loadIssue = issue
+            )
+            return
+        }
+
         val availablePairs = repo.availablePairs()
         if (availablePairs.isEmpty()) {
+            val noPairsIssue = issue ?: LoadIssue.NoPairs
             recordSettingsError(SettingsError.DataLoadFailed, "No language pairs available")
             _state.value = _state.value.copy(
                 status = QuizState.Status.Error,
-                initPhase = QuizState.InitPhase.Error
+                initPhase = QuizState.InitPhase.Error,
+                loadIssue = noPairsIssue
             )
             return
         }

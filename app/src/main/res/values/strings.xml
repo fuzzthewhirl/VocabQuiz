@@ -29,6 +29,7 @@
     <string name="settings_error_missing_id">Enter a spreadsheet ID to continue.</string>
     <string name="settings_error_fetch_failed">Could not fetch sheets. Check sign-in and network.</string>
     <string name="settings_error_no_sheets">No sheets found for this spreadsheet.</string>
+    <string name="settings_error_sheet_missing">Saved sheet not found in this workbook. Please select a sheet.</string>
     <string name="settings_error_data_load_failed">Sheet loaded but no compatible vocab data found.</string>
     <string name="settings_error_folder_missing">Drive folder "VocabQuiz" not found.</string>
     <string name="settings_error_folder_empty">No spreadsheets found in "VocabQuiz".</string>
@@ -52,4 +53,7 @@
     <string name="translate_hint">Opens: %1$s</string>
     <string name="translate_title">Google Translate</string>
     <string name="translate_close">Close</string>
+    <string name="data_warning_rows_skipped">Loaded %1$d rows, skipped %2$d invalid.</string>
+    <string name="data_error_no_valid_rows">No valid rows could be loaded from the sheet.</string>
+    <string name="data_error_no_pairs">No supported language pairs could be loaded from the sheet.</string>
 </resources>

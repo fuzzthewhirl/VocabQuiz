@@ -6,7 +6,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import com.example.vocabquiz.model.LanguageCatalog
 import com.example.vocabquiz.model.LanguagePair
 import com.example.vocabquiz.model.Vocab
 import kotlinx.coroutines.Dispatchers
@@ -26,67 +25,64 @@ class VocabRepository(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    suspend fun loadAll(spreadsheetId: String, sheetTab: String): Map<LanguagePair, Int> =
+    suspend fun loadAll(spreadsheetId: String, sheetTab: String): Result<LoadOutcome> =
         withContext(Dispatchers.IO) {
 
         if (!isNetworkAvailable()) {
             Log.e("VocabRepo", "No internet connection available.")
-            return@withContext emptyMap()
+            clearAndLog("No internet connection available.")
+            return@withContext Result.failure(IOException("No internet connection"))
         }
         else{
             Log.i("VocabRepo", "Internet connection OK.")
         }
         val service = SheetsServiceFactory.create(context)
-            ?: run { clearAndLog("No Sheets service (not signed in?)"); return@withContext emptyMap() }
+            ?: run {
+                clearAndLog("No Sheets service (not signed in?)")
+                return@withContext Result.failure(IllegalStateException("No Sheets service"))
+            }
+
+        val resolvedSheet = resolveSheetName(service, spreadsheetId, sheetTab)
+        if (resolvedSheet == null) {
+            clearAndLog("Sheet tab not found: '$sheetTab'")
+            return@withContext Result.failure(IllegalStateException("Sheet tab not found: '$sheetTab'"))
+        }
+        val effectiveSheet = resolvedSheet
+        if (resolvedSheet != sheetTab) {
+            Log.w("VocabRepo", "Using resolved sheet name: $resolvedSheet")
+        }
 
         // Fixed range and fixed column order (A:D)
-        val rangeA1 = "$sheetTab!A:D"
+        val rangeA1 = "${formatSheetName(effectiveSheet)}!A:D"
         val resp = runCatching {
             service.spreadsheets().values().get(spreadsheetId, rangeA1).execute()
         }.getOrElse { t ->
             clearAndLog("Sheets get failed for range=$rangeA1", t)
-            return@withContext emptyMap()
+            return@withContext Result.failure(t)
         }
 
         val rows = resp.getValues() ?: emptyList()
-        if (rows.isEmpty()) {
-            clearAndLog("No rows returned (range=$rangeA1)")
-            return@withContext emptyMap()
-        }
-
-        // A:srcLangName, B:tgtLangName, C:sourceWord, D:targetWord
-        fun norm(s: Any?) = s?.toString()?.trim().orEmpty()
-        fun normLangName(s: Any?): String? = LanguageCatalog.normalize(norm(s))
-
-        all = rows.mapNotNull { r ->
-            val srcLang = normLangName(r.getOrNull(0))
-            val tgtLang = normLangName(r.getOrNull(1))
-            val source = norm(r.getOrNull(2))
-            val target = norm(r.getOrNull(3))
-
-            if (source.isEmpty() || target.isEmpty()) return@mapNotNull null
-            if (srcLang == null || tgtLang == null) return@mapNotNull null
-
-            Vocab(
-                source = source,
-                target = target,
-                srcLang = srcLang,
-                tgtLang = tgtLang
-            )
-        }
-
-        // Exclude same-language pairs
-        val before = all.size
-        all = all.filter { it.srcLang != null && it.tgtLang != null && it.srcLang != it.tgtLang }
-        Log.d(
-            "VocabRepo",
-            "Parsed $before rows, kept ${all.size} after lang filter (tab=$sheetTab)"
-        )
-
+        val parsed = SheetParser.parse(rows)
+        all = parsed.valid
         byPair = all.groupBy { LanguagePair(it.srcLang!!, it.tgtLang!!) }
         byPair.forEach { (pair, list) -> Log.d("VocabRepo", "Pair $pair -> ${list.size} rows") }
 
-        byPair.mapValues { it.value.size }
+        if (rows.isEmpty()) {
+            clearAndLog("No rows returned (range=$rangeA1)")
+        }
+
+        Log.d(
+            "VocabRepo",
+            "Parsed ${parsed.report.totalRows} rows, kept ${parsed.report.validRows} " +
+                "(skipped ${parsed.report.skippedRows}) (tab=$sheetTab)"
+        )
+
+        Result.success(
+            LoadOutcome(
+                sizes = byPair.mapValues { it.value.size },
+                report = parsed.report
+            )
+        )
     }
 
     suspend fun getSheetNames(spreadsheetId: String): Result<List<String>> = withContext(Dispatchers.IO) {
@@ -182,6 +178,49 @@ class VocabRepository(
         all = emptyList(); byPair = emptyMap()
         if (t != null) Log.e("VocabRepo", msg, t) else Log.e("VocabRepo", msg)
     }
+
+}
+
+internal fun formatSheetName(sheetTab: String): String {
+    val escaped = sheetTab.replace("'", "''")
+    return "'$escaped'"
+}
+
+private fun resolveSheetName(
+    service: com.google.api.services.sheets.v4.Sheets,
+    spreadsheetId: String,
+    desired: String
+): String? {
+    val names = runCatching {
+        service.spreadsheets().get(spreadsheetId)
+            .setFields("sheets.properties.title")
+            .execute()
+            .sheets
+            ?.mapNotNull { it.properties?.title }
+            .orEmpty()
+    }.getOrElse { return null }
+
+    Log.d("VocabRepo", "Available sheets: ${names.joinToString()}")
+
+    if (names.contains(desired)) return desired
+
+    val normalizedDesired = normalizeSheetName(desired)
+    val resolved = names.firstOrNull { normalizeSheetName(it) == normalizedDesired }
+    if (resolved == null) {
+        Log.w(
+            "VocabRepo",
+            "Sheet tab not found. desired='$desired' normalized='${normalizedDesired}'"
+        )
+    }
+    return resolved
+}
+
+private fun normalizeSheetName(name: String): String {
+    return name
+        .replace("\u00A0", " ")
+        .trim()
+        .replace(Regex("\\s+"), " ")
+        .lowercase()
 }
 
 data class SpreadsheetInfo(

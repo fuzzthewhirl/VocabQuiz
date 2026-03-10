@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Interfacetaal</string>
     <string name="settings_ui_language_system_default">Systeemstandaard</string>
     <string name="settings_app_version_label">App-versie:</string>
+    <string name="data_warning_rows_skipped">%1$d rijen geladen, %2$d ongeldige overgeslagen.</string>
+    <string name="data_error_no_valid_rows">Er konden geen geldige rijen uit het blad worden geladen.</string>
+    <string name="data_error_no_pairs">Er konden geen ondersteunde taalparen uit het blad worden geladen.</string>
+    <string name="settings_error_sheet_missing">Het opgeslagen blad is niet gevonden in deze werkmap. Selecteer een blad.</string>
 </resources>

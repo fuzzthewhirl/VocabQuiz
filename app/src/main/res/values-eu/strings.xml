@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Interfazearen hizkuntza</string>
     <string name="settings_ui_language_system_default">Sistemaren lehenetsia</string>
     <string name="settings_app_version_label">Aplikazioaren bertsioa:</string>
+    <string name="data_warning_rows_skipped">Kargatu dira %1$d errenkada; %2$d baliogabe baztertu dira.</string>
+    <string name="data_error_no_valid_rows">Ezin izan dira taulako errenkada baliodunak kargatu.</string>
+    <string name="data_error_no_pairs">Ezin izan dira taulako hizkuntza-pare bateragarriak kargatu.</string>
+    <string name="settings_error_sheet_missing">Gordetako orria ez da aurkitu koaderno honetan. Hautatu orri bat.</string>
 </resources>

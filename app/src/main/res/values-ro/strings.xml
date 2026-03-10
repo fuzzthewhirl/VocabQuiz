@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Limba interfeței</string>
     <string name="settings_ui_language_system_default">Implicit de sistem</string>
     <string name="settings_app_version_label">Versiunea aplicației:</string>
+    <string name="data_warning_rows_skipped">S-au încărcat %1$d rânduri, s-au ignorat %2$d nevalide.</string>
+    <string name="data_error_no_valid_rows">Nu s-au putut încărca rânduri valide din foaie.</string>
+    <string name="data_error_no_pairs">Nu s-au putut încărca perechi de limbi acceptate din foaie.</string>
+    <string name="settings_error_sheet_missing">Foaia salvată nu a fost găsită în acest registru. Selectați o foaie.</string>
 </resources>

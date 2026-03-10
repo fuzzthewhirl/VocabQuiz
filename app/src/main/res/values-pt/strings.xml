@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Idioma da interface</string>
     <string name="settings_ui_language_system_default">Padrão do sistema</string>
     <string name="settings_app_version_label">Versão do aplicativo:</string>
+    <string name="data_warning_rows_skipped">Carregadas %1$d linhas, ignoradas %2$d inválidas.</string>
+    <string name="data_error_no_valid_rows">Não foi possível carregar linhas válidas da folha.</string>
+    <string name="data_error_no_pairs">Não foi possível carregar pares de idiomas suportados da folha.</string>
+    <string name="settings_error_sheet_missing">A folha guardada não foi encontrada neste livro. Selecione uma folha.</string>
 </resources>

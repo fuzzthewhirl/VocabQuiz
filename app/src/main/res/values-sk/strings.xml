@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Jazyk rozhrania</string>
     <string name="settings_ui_language_system_default">Predvolené v systéme</string>
     <string name="settings_app_version_label">Verzia aplikácie:</string>
+    <string name="data_warning_rows_skipped">Načítaných %1$d riadkov, preskočených %2$d neplatných.</string>
+    <string name="data_error_no_valid_rows">Z hárka sa nepodarilo načítať žiadne platné riadky.</string>
+    <string name="data_error_no_pairs">Z hárka sa nepodarilo načítať žiadne podporované jazykové páry.</string>
+    <string name="settings_error_sheet_missing">Uložený hárok nebol v tomto zošite nájdený. Vyberte hárok.</string>
 </resources>

@@ -52,4 +52,8 @@
     <string name="settings_ui_language_label">Käyttöliittymän kieli</string>
     <string name="settings_ui_language_system_default">Järjestelmän oletus</string>
     <string name="settings_app_version_label">Sovellusversio:</string>
+    <string name="data_warning_rows_skipped">Ladattu %1$d riviä, ohitettu %2$d virheellistä.</string>
+    <string name="data_error_no_valid_rows">Taulukosta ei voitu ladata yhtään kelvollista riviä.</string>
+    <string name="data_error_no_pairs">Taulukosta ei löytynyt tuettuja kielipareja.</string>
+    <string name="settings_error_sheet_missing">Tallennettua välilehteä ei löytynyt tästä työkirjasta. Valitse välilehti.</string>
 </resources>

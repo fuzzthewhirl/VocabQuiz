@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Iaith y rhyngwyneb</string>
     <string name="settings_ui_language_system_default">Rhagosodiad y system</string>
     <string name="settings_app_version_label">Fersiwn y rhaglen:</string>
+    <string name="data_warning_rows_skipped">Llwythwyd %1$d rhes, hepgorwyd %2$d annilys.</string>
+    <string name="data_error_no_valid_rows">Methu llwytho unrhyw resi dilys o\'r daflen.</string>
+    <string name="data_error_no_pairs">Methu llwytho unrhyw barau iaith a gefnogir o\'r daflen.</string>
+    <string name="settings_error_sheet_missing">Ni chanfuwyd y daflen a gadwyd yn y llyfr gwaith hwn. Dewiswch daflen.</string>
 </resources>

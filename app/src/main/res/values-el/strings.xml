@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Γλώσσα διεπαφής</string>
     <string name="settings_ui_language_system_default">Προεπιλογή συστήματος</string>
     <string name="settings_app_version_label">Έκδοση εφαρμογής:</string>
+    <string name="data_warning_rows_skipped">Φορτώθηκαν %1$d γραμμές, παραλείφθηκαν %2$d μη έγκυρες.</string>
+    <string name="data_error_no_valid_rows">Δεν ήταν δυνατή η φόρτωση έγκυρων γραμμών από το φύλλο.</string>
+    <string name="data_error_no_pairs">Δεν ήταν δυνατή η φόρτωση υποστηριζόμενων ζευγών γλωσσών από το φύλλο.</string>
+    <string name="settings_error_sheet_missing">Το αποθηκευμένο φύλλο δεν βρέθηκε σε αυτό το βιβλίο εργασίας. Επιλέξτε φύλλο.</string>
 </resources>

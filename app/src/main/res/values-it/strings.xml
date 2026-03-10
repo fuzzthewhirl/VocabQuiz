@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Lingua dell’interfaccia</string>
     <string name="settings_ui_language_system_default">Predefinito di sistema</string>
     <string name="settings_app_version_label">Versione dell’app:</string>
+    <string name="data_warning_rows_skipped">Caricate %1$d righe, ignorate %2$d non valide.</string>
+    <string name="data_error_no_valid_rows">Non è stato possibile caricare righe valide dal foglio.</string>
+    <string name="data_error_no_pairs">Non è stato possibile caricare coppie di lingue supportate dal foglio.</string>
+    <string name="settings_error_sheet_missing">Il foglio salvato non è stato trovato in questa cartella di lavoro. Seleziona un foglio.</string>
 </resources>

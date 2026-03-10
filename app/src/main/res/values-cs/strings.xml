@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Jazyk rozhraní</string>
     <string name="settings_ui_language_system_default">Výchozí nastavení systému</string>
     <string name="settings_app_version_label">Verze aplikace:</string>
+    <string name="data_warning_rows_skipped">Načteno %1$d řádků, přeskočeno %2$d neplatných.</string>
+    <string name="data_error_no_valid_rows">Z tabulky se nepodařilo načíst žádné platné řádky.</string>
+    <string name="data_error_no_pairs">Z tabulky se nepodařilo načíst žádné podporované jazykové páry.</string>
+    <string name="settings_error_sheet_missing">Uložený list nebyl v tomto sešitu nalezen. Vyberte list.</string>
 </resources>

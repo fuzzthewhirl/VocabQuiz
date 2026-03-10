@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Idioma de la interfície</string>
     <string name="settings_ui_language_system_default">Predeterminat del sistema</string>
     <string name="settings_app_version_label">Versió de l’aplicació:</string>
+    <string name="data_warning_rows_skipped">S\'han carregat %1$d files, s\'han omes %2$d d\'invàlides.</string>
+    <string name="data_error_no_valid_rows">No s\'han pogut carregar files vàlides del full.</string>
+    <string name="data_error_no_pairs">No s\'han pogut carregar parells de llengües compatibles del full.</string>
+    <string name="settings_error_sheet_missing">No s’ha trobat el full desat en aquest llibre. Selecciona un full.</string>
 </resources>

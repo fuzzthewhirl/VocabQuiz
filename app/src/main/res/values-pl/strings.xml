@@ -53,4 +53,8 @@
     <string name="settings_ui_language_label">Język interfejsu</string>
     <string name="settings_ui_language_system_default">Domyślne systemu</string>
     <string name="settings_app_version_label">Wersja aplikacji:</string>
+    <string name="data_warning_rows_skipped">Wczytano %1$d wierszy, pominięto %2$d nieprawidłowych.</string>
+    <string name="data_error_no_valid_rows">Nie udało się wczytać żadnych poprawnych wierszy z arkusza.</string>
+    <string name="data_error_no_pairs">Nie udało się wczytać żadnych obsługiwanych par językowych z arkusza.</string>
+    <string name="settings_error_sheet_missing">Nie znaleziono zapisanego arkusza w tym skoroszycie. Wybierz arkusz.</string>
 </resources>
