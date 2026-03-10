@@ -77,7 +77,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.Scope
 import java.net.URLEncoder
 import java.util.Locale
-import com.example.vocabquiz.BuildConfig
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
